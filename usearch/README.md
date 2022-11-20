@@ -27,11 +27,14 @@ export usearch=~/usearch11.0.667_i86linux32.gz
 $usearch # значение переменной
 ```
 
+Структура:
+пользовательская переменная -функция файлы
+
 ```bash
 $usearch -fastx_info lol.fastq
-
-
 ```
+
+Пример исполнения в терминале линукса. Видно, что при запуске линускоидного файла выделяются разные ресурсы ПК
 
 ```bash
 nikivene@DESKTOP-78NOBF0:~/Deeploid$ export usearch=~/Deeploid/usearch11.0.667_win32.exe
