@@ -187,6 +187,24 @@ $usearch -usearch_global ../out/merged.fq \
 ### Итог
 ```bash 
 less -S ../out/otutable.txt
+
+#OTU ID SRR22104214
+Otu5    78
+Otu1    343
+Otu2    274
+Otu16   19
+Otu12   2
+Otu3    29
+Otu11   2
+Otu8    6
+Otu13   38
+Otu10   11
+Otu6    4
+Otu4    6
+Otu9    2
+Otu14   2
+Otu7    2
+Otu15   2
 ```
 
 
