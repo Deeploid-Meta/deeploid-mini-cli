@@ -2,7 +2,7 @@
 Будем использовать vsearch, который есть в виде плагина в qiime. Запускал из докера.
 
 ## Подготовка данных
-Загрузить данные с помощью SRA-tools. Их можно устнаовить в докере с помощью конды.
+Загрузить данные с помощью SRA-tools. Их можно установить в докере с помощью конды.
 
 
 **Установка sra-tools на линукс с помощью конды**
@@ -20,10 +20,10 @@ cd SRR22104214
 fastq-dump --split-files SRR22104214.sra
 
 Затем создаем manifest.tsv (apt-get udate && apt install nano && nano manifest.tsv):
-
+```
 sample-id       forward-absolute-filepath       reverse-absolute-filepath
 sample-1        /data/SRR22104214/SRR22104214_1.fastq   /data/SRR22104214/SRR22104214_2.fastq
-
+```
 conda deactivate
 
 **Импорт данных в qiime**
@@ -31,7 +31,7 @@ conda deactivate
 qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path manifest.tsv --output-path paired-end-demux.qza --input-format PairedEndFastqManifestPhred33V2
 
 
-Для dada нужны два файла, vsearch требуетмся один. Делаем его с помощью данной команды из сырых данных:
+Для dada нужны два файла, vsearch требуется один. Делаем его с помощью данной команды из сырых данных:
 
 qiime vsearch join-pairs --i-demultiplexed-seqs paired-end-demux.qza --o-joined-sequences joined.qza
 
