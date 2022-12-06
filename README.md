@@ -6,7 +6,7 @@
 ``wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.1/sratoolkit.3.0.1-ubuntu64.tar.gz``\
 ``tar zxvf sratoolkit.3.0.1-ubuntu64.tar.gz``
 
-Альтернатива - становка через Conda:
+Альтернатива - установка через Conda:
 `conda install -c bioconda -c conda-forge -c defaults sra-tools`
 
 Далее обязательно создайте пустую папку, куда и будут загружаться данные \
