@@ -1,6 +1,7 @@
 import gzip
 import shutil
 from pathlib import Path
+import pickle
 
 import pandas as pd
 import qiime2.plugins as plugins
@@ -123,7 +124,37 @@ def main():
     print(df_seqs.head(10))
     df_seqs_freqs = pd.merge(df_seqs, feature_freqs, on='feature_id')
     print(df_seqs_freqs.head(10))
+
+    # Use feature-classifier plugin for taxonomy assignment
+    classifier_path = data / 'gg-13-8-99-515-806-nb-classifier.qza'
+    feature_classifier = plugin_manager.plugins['feature-classifier']
+    # print(f'feature_classifier: {feature_classifier}')
+    # print(f'feature_classifier actions: {feature_classifier.actions}')
+    classify_sklearn = feature_classifier.actions['classify_sklearn']
+    # print(f'classify_sklearn: {classify_sklearn}')
+    # print(classify_sklearn.signature)
+    classifier = qiime2.Artifact.load(classifier_path)
     
+    result_taxonomy = classify_sklearn(reads=result.representative_sequences,
+                                       classifier=classifier)
+    print(f'result_taxonomy: {result_taxonomy}')
+    result_taxonomy.classification.save(str(qiime2_artifacts / 'taxonomy.qza'))
+    
+    tab_taxonomy = tabulate(result_taxonomy.classification.view(qiime2.Metadata))
+    tab_taxonomy.visualization.save(str(qiime2_artifacts / 'taxonomy.qzv'))
+    tab_taxonomy.visualization.export_data(tmp_output)
+
+    # Use taxa plugin for visualization taxonomy - barplot
+    taxa = plugin_manager.plugins['taxa']
+    # print(f'taxa: {taxa}')
+    # print(f'taxa actions: {taxa.actions}')
+    barplot = taxa.actions['barplot']
+    # print(f'barplot: {barplot}')
+    # print(barplot.signature)
+    result_barplot = barplot(table=result.table,
+                             taxonomy=result_taxonomy.classification)
+    print(f'result_barplot: {result_barplot}')
+    result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
 
 if __name__ == "__main__":
     main()
