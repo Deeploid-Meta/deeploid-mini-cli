@@ -33,3 +33,5 @@ https://github.com/andreiprodan/mock-sequences
 | Streptococcus agalactiae |	2603 V/R |	NC_004116 |	7 |	1 |
 | Streptococcus mutans |	UA159 |	NC_004350 |	5 |	1 |
 | Streptococcus pneumoniae |	TIGR4 |	NC_003028 |	4 |	1 |
+
+Вся информация была взята из статьи https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0227434#pone.0227434.s002
