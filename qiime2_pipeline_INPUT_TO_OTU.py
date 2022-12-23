@@ -20,8 +20,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('-o', '--outdir', help='Output folder (default = reads folder)', required=False, default=False)
     parser.add_argument('-p', '--prefix', help='Output file prefix (default = prefix of original file)', required=False,
                         default=False)
-    parser.add_argument('-db', '--database', help='Path to database (fasta/qza)', required=False,
-                        default=False)
     parser.add_argument('-t', '--threads', help='Number of threads (default = 8)', required=False, default="8")
     parser.add_argument('--trunc_len', help='dada2 denoise_single - trunc length', required=False, default=150)
     parser.add_argument('--trim_left', help='dada2 denoise_single - trim left', required=False, default=30)
@@ -153,34 +151,6 @@ def main():
     df_seqs_freqs['frequency'] = df_seqs_freqs['frequency'].astype(int)
     df_seqs_freqs.drop('feature_id', axis=1).to_csv(output / 'OTU.csv', index=False)
 
-    # Use feature-classifier plugin for taxonomy assignment
-    classifier_path = Path(args['database'])
-    feature_classifier = plugin_manager.plugins['feature-classifier']
-    classify_sklearn = feature_classifier.actions['classify_sklearn']
-    classifier = qiime2.Artifact.load(classifier_path)
-    
-    result_taxonomy = classify_sklearn(reads=result.representative_sequences,
-                                       classifier=classifier)
-    result_taxonomy.classification.save(str(qiime2_artifacts / 'taxonomy.qza'))
-    
-    tab_taxonomy = tabulate(result_taxonomy.classification.view(qiime2.Metadata))
-    tab_taxonomy.visualization.save(str(qiime2_artifacts / 'taxonomy.qzv'))
-    tab_taxonomy.visualization.export_data(tmp_output / 'taxonomy')
-
-    # Save taxonomy to tsv file
-    taxanomy_metadata = pd.read_csv(tmp_output / 'taxonomy' / 'metadata.tsv',
-                                    sep='\t',
-                                    skiprows=2,
-                                    names=['feature_id', 'taxonomy', 'confidence'])
-    taxonomy = df_seqs_freqs.merge(taxanomy_metadata, on='feature_id', how='left')
-    taxonomy.drop('feature_id', axis=1).to_csv(output / 'taxonomy.tsv', index=False, sep='\t')
-
-    # Use taxa plugin for visualization taxonomy - barplot
-    taxa = plugin_manager.plugins['taxa']
-    barplot = taxa.actions['barplot']
-    result_barplot = barplot(table=result.table,
-                             taxonomy=result_taxonomy.classification)
-    result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
 
     # Remove temporary files
     shutil.rmtree(working_dir)
