@@ -1,0 +1,1 @@
+Data from https://github.com/Deeploid-Meta/deeploid-mini-cli/tree/standart_dataset
