@@ -10,37 +10,130 @@ from urllib import request
 from qiime2 import Metadata
 import qiime2.plugins.metadata.actions as metadata_actions
 import qiime2.plugins.feature_classifier.actions as feature_classifier_actions
-
-
-raw_data = Path('data')
-sample_name = 'SRR22104214'
-
-vsearch_data = Path('vsearch_data')
-vsearch_data.mkdir(exist_ok=True)
-
-vsearch_artifacts = Path('vsearch_artifacts')
-vsearch_artifacts.mkdir(exist_ok=True)
+import os
+import argparse
 
 plugin_manager = PluginManager(True)
 vsearch = plugin_manager.plugins["vsearch"]
 
 
-def preprocess_import_data(raw_data, sample_name, vsearch_data, vsearch_artifacts):
-    """
-    Parse data from folder with raw reads and transform them to qiime2 format.
-    Then imports data to qiime2.
-    """
-    #data to qiime2 format
-    for i in range(1, 3):
-        with open(raw_data / f'{sample_name}_{i}.fastq', 'rb') as f_in:
-            with gzip.open(vsearch_data / f'{sample_name}_{i}_L001_R{i}_001.fastq.gz', 'wb') as f_out:
+def build_parser() -> argparse.ArgumentParser:
+
+    parser = argparse.ArgumentParser(description='vsearch pipeline for 16s rrna data analysis')
+    parser.add_argument('-r', '--raw_reads_dir', help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format', required=True)
+    parser.add_argument('-o', '--outdir', help='Output folder with artifacts and data', required=True)
+    parser.add_argument('-se', '--is_single_ended', help='Analyse as single ended', required=False, default=False)
+    parser.add_argument('-t', '--trimming', help='Trim raw reads before analysis', required=False, default=False)
+
+    return parser
+
+
+def prepare_data_se(raw_reads_path, working_dir):
+    ''' Prepare sindle ended files for qiime pipeline (should be gz files with _R1_001.fastq.gz
+        and _R2_001.fastq.gz in filename)
+    '''
+    prepared_for_qiime2_reads_dir = working_dir / Path('prepared_data')
+    prepared_for_qiime2_reads_dir.mkdir(exist_ok=True)
+
+
+    reads_names = os.listdir(raw_reads_path)
+    reads_names = [x for x in reads_names if '.fastq' in x or '.fq' in x]
+    sample_names  = list(set([x.split('_')[0] for x in reads_names]))
+
+
+    for sample_name in sample_names:
+        with open(raw_reads_path / f'{sample_name}_1.fastq', 'rb') as f_in:
+            with gzip.open(prepared_for_qiime2_reads_dir / f'{sample_name}_1_L001_R1_001.fastq.gz', 'wb') as f_out:
                 f_out.writelines(f_in)
 
-    #importing data to qiime2
-    paired_end_sequences = qiime2.Artifact.import_data('SampleData[PairedEndSequencesWithQuality]', 'vsearch_data')
-    paired_end_sequences.save(str(vsearch_artifacts / 'paired-end-sequences.qza'))
+    # Prepare MANIFEST file
+    manifest_data = []
+    for sample_name in sample_names:
+        manifest_data.append([sample_name, str(f'{sample_name}_1_L001_R1_001.fastq.gz') ,'forward',])
 
-    return paired_end_sequences
+    manifest = pd.DataFrame(manifest_data, columns=['sample-id', 'filename', 'direction'])
+    manifest.to_csv(prepared_for_qiime2_reads_dir / 'MANIFEST', index=False)
+
+    # Prepare metadata file
+    with open(prepared_for_qiime2_reads_dir / 'metadata.yml', 'w') as f:
+        f.write('phred-offset: 33')
+
+    return prepared_for_qiime2_reads_dir
+
+
+def prepare_data_pe(raw_reads_path,
+                    working_dir):
+    ''' Prepare pair ended files for qiime pipeline (should be gz files with _R1_001.fastq.gz
+        and _R2_001.fastq.gz in filename)
+    '''
+    prepared_for_qiime2_reads_dir = working_dir / Path('prepared_data')
+    prepared_for_qiime2_reads_dir.mkdir(exist_ok=True)
+
+
+    reads_names = os.listdir(raw_reads_path)
+    reads_names = [x for x in reads_names if '.fastq' in x or '.fq' in x]
+    sample_names  = list(set([x.split('_')[0] for x in reads_names]))
+
+
+    for sample_name in sample_names:
+        for i in range(1, 3):
+            with open(raw_reads_path / f'{sample_name}_{i}.fastq', 'rb') as f_in:
+                with gzip.open(prepared_for_qiime2_reads_dir / f'{sample_name}_{i}_L001_R{i}_001.fastq.gz', 'wb') as f_out:
+                    f_out.writelines(f_in)
+
+    # Prepare MANIFEST file
+    manifest_data = []
+    for sample_name in sample_names:
+        manifest_data.append([sample_name, str(f'{sample_name}_1_L001_R1_001.fastq.gz') ,'forward',])
+        manifest_data.append([sample_name, str(f'{sample_name}_2_L001_R2_001.fastq.gz') ,'reverse',])
+
+    manifest = pd.DataFrame(manifest_data, columns=['sample-id', 'filename', 'direction'])
+    manifest.to_csv(prepared_for_qiime2_reads_dir / 'MANIFEST', index=False)
+
+    # Prepare metadata file
+    with open(prepared_for_qiime2_reads_dir / 'metadata.yml', 'w') as f:
+        f.write('phred-offset: 33')
+
+    return prepared_for_qiime2_reads_dir
+
+
+def load_sequences_to_qiime2(is_single_ended, prepared_for_qiime2_reads_dir, output_dir):
+    """
+    Imports data to qiime2
+    """
+    if is_single_ended:
+        single_end_sequences = qiime2.Artifact.import_data('SampleData[SequencesWithQuality]', prepared_for_qiime2_reads_dir)
+        single_end_sequences.save(str(output_dir / 'single-end-sequences.qza'))
+        os.system(f'rm -rf {prepared_for_qiime2_reads_dir}')
+
+        return single_end_sequences
+
+    else:
+        paired_end_sequences = qiime2.Artifact.import_data('SampleData[PairedEndSequencesWithQuality]', prepared_for_qiime2_reads_dir)
+        paired_end_sequences.save(str(output_dir / 'paired-end-sequences.qza'))
+        os.system(f'rm -rf {prepared_for_qiime2_reads_dir}')
+
+        return paired_end_sequences
+
+
+
+def trimming(is_single_ended, raw_reads_path, working_dir):
+    """Trims raw data"""
+    reads_names = os.listdir(raw_reads_path)
+    reads_names = [x for x in reads_names if '.fastq' in x or '.fq' in x]
+    sample_names  = list(set([x.split('_')[0] for x in reads_names]))
+
+    new_path = working_dir / Path("raw_data_dir_trimmed")
+    new_path.mkdir(exist_ok=True)
+
+    if is_single_ended:
+        for sample_name in sample_names:
+            os.system(f"""trimmomatic SE {raw_reads_path}/{sample_name}_1.fastq {new_path}/{sample_name}_1.fastq ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True""")
+
+    else:
+        for sample_name in sample_names:
+            os.system(f"""trimmomatic PE {raw_reads_path}/{sample_name}_1.fastq {raw_reads_path}/{sample_name}_2.fastq {new_path}/{sample_name}_1.fastq {new_path}/output_forward_unpaired {new_path}/{sample_name}_2.fastq {new_path}/output_reverse_unpaired ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:True""")
+
 
 def merging(paired_end_sequences, vsearch_artifacts):
     """
@@ -136,23 +229,44 @@ def main():
     """
     Pipeline for metagenomics 16s data anlysis using vsearch
     """
-    #import data
-    paired_end_sequences = preprocess_import_data(raw_data, sample_name, vsearch_data, vsearch_artifacts)
 
-    #merging
-    joined_sequences = merging(paired_end_sequences, vsearch_artifacts)
+    parser = build_parser()
+    args = vars(parser.parse_args())
+
+    raw_reads_dir = Path(args['raw_reads_dir'])
+    is_single_ended = args["is_single_ended"] == 'True'
+    to_trim = args["trimming"] == 'True'
+
+    # Create output directory
+    output_dir = Path(args['outdir'])
+    output_dir.mkdir(exist_ok=True)
+
+    # Create working directory
+    working_dir = output_dir / Path('working_dir')
+    working_dir.mkdir(exist_ok=True)
+
+    #trimming
+    if to_trim:
+        trimming(is_single_ended, raw_reads_dir, working_dir)
+        raw_reads_dir = working_dir / Path("raw_data_dir_trimmed")
+
+    #preprocessing and importing data
+    if is_single_ended:
+        prepared_for_qiime2_reads_dir = prepare_data_se(raw_reads_dir, working_dir)
+        sequences = load_sequences_to_qiime2(True, prepared_for_qiime2_reads_dir, output_dir)
+    else:
+        prepared_for_qiime2_reads_dir = prepare_data_pe(raw_reads_dir, working_dir)
+        paired_end_sequences = load_sequences_to_qiime2(False, prepared_for_qiime2_reads_dir, output_dir)
+        sequences = merging(paired_end_sequences, output_dir)
 
     #dereplication
-    dereplicated_table, dereplicated_sequences = dereplication(joined_sequences, vsearch_artifacts)
+    dereplicated_table, dereplicated_sequences = dereplication(sequences, output_dir)
 
     #OTUs (clustering)
-    clustered_table, clustered_sequences = otu_clustering(dereplicated_table, dereplicated_sequences, vsearch_artifacts)
+    clustered_table, clustered_sequences = otu_clustering(dereplicated_table, dereplicated_sequences, output_dir)
 
     # taxonomy classification
-    taxonomy = taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifacts)
-
-
-
+    taxonomy = taxonomy_classification(clustered_table, clustered_sequences, output_dir)
 
 
 if __name__ == "__main__":
