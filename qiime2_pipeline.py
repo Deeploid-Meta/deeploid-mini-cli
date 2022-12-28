@@ -2,10 +2,8 @@ import gzip
 import shutil
 import argparse
 from pathlib import Path
-import pickle
 
 import pandas as pd
-import qiime2.plugins as plugins
 from qiime2.sdk import PluginManager
 
 import qiime2
@@ -13,40 +11,60 @@ import qiime2
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='qiime2 pipeline')
-    parser.add_argument('-1', '--forward_reads', help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
-                        required=True)
-    parser.add_argument('-2', '--reverse_reads', help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
-                        default=False)
-    parser.add_argument('-o', '--outdir', help='Output folder (default = reads folder)', required=False, default=False)
-    parser.add_argument('-p', '--prefix', help='Output file prefix (default = prefix of original file)', required=False,
-                        default=False)
-    parser.add_argument('-db', '--database', help='Path to database (fasta/qza)', required=False,
-                        default=False)
-    parser.add_argument('-t', '--threads', help='Number of threads (default = 8)', required=False, default="8")
-    parser.add_argument('--trunc_len', help='dada2 denoise_single - trunc length', required=False, default=150)
-    parser.add_argument('--trim_left', help='dada2 denoise_single - trim left', required=False, default=30)
+    parser.add_argument(
+        '-1', '--forward_reads',
+        help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
+        required=True)
+    parser.add_argument(
+        '-2', '--reverse_reads',
+        help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
+        default=False)
+    parser.add_argument(
+        '-o', '--outdir', help='Output folder (default = reads folder)',
+        required=False, default=False)
+    parser.add_argument(
+        '-p', '--prefix',
+        help='Output file prefix (default = prefix of original file)',
+        required=False, default=False)
+    parser.add_argument(
+        '-db', '--database', help='Path to database (fasta/qza)',
+        required=False, default=False)
+    parser.add_argument(
+        '-t', '--threads', help='Number of threads (default = 8)',
+        required=False, default="8")
+    parser.add_argument(
+        '--trunc_len', help='dada2 denoise_single - trunc length',
+        required=False, default=150, type=int)
+    parser.add_argument(
+        '--trim_left', help='dada2 denoise_single - trim left',
+        required=False, default=30, type=int)
     return parser
 
 
 def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
-                                         reverse_raw_reads: Path,
-                                         working_dir: Path) -> None:
+                                    reverse_raw_reads: Path,
+                                    working_dir: Path) -> None:
     ''' Prepare files for qiime pipeline (should be gz files with _R1_001.fastq.gz
         and _R2_001.fastq.gz in filename)
     '''
     sample_name = forward_raw_reads.name.split('_')[0]
     with open(forward_raw_reads, 'rb') as f_in:
-        with gzip.open(working_dir / f'{sample_name}_1_L001_R1_001.fastq.gz', 'wb') as f_out:
+        with gzip.open(working_dir / f'{sample_name}_1_L001_R1_001.fastq.gz',
+                       'wb') as f_out:
             f_out.writelines(f_in)
     with open(reverse_raw_reads, 'rb') as f_in:
-        with gzip.open(working_dir / f'{sample_name}_2_L001_R2_001.fastq.gz', 'wb') as f_out:
+        with gzip.open(working_dir / f'{sample_name}_2_L001_R2_001.fastq.gz',
+                       'wb') as f_out:
             f_out.writelines(f_in)
 
     # Prepare MANIFEST file
     manifest_data = []
-    manifest_data.append([sample_name, str(f'{sample_name}_1_L001_R1_001.fastq.gz') ,'forward',])
-    manifest_data.append([sample_name, str(f'{sample_name}_2_L001_R2_001.fastq.gz') ,'reverse',])
-    manifest = pd.DataFrame(manifest_data, columns=['sample-id', 'filename', 'direction'])
+    manifest_data.append(
+        [sample_name, str(f'{sample_name}_1_L001_R1_001.fastq.gz'), 'forward'])
+    manifest_data.append(
+        [sample_name, str(f'{sample_name}_2_L001_R2_001.fastq.gz'), 'reverse'])
+    manifest = pd.DataFrame(
+        manifest_data, columns=['sample-id', 'filename', 'direction'])
     manifest.to_csv(working_dir / 'MANIFEST', index=False)
 
     # Prepare metadata file
@@ -57,7 +75,6 @@ def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
 def main():
     parser = build_parser()
     args = vars(parser.parse_args())
-
 
     # Create output directory
     output = Path(args['outdir'])
@@ -70,22 +87,25 @@ def main():
     # Create temporary directory
     tmp_output = output / Path('tmp')
 
-    # Create working directory    
+    # Create working directory
     working_dir = output / Path('working_dir')
     working_dir.mkdir(exist_ok=True)
     forward_raw_reads = Path(args['forward_reads'])
     reverse_raw_reads = Path(args['reverse_reads'])
 
-    prepare_data_for_qiime_pipeline(forward_raw_reads, reverse_raw_reads, working_dir)
+    prepare_data_for_qiime_pipeline(
+        forward_raw_reads, reverse_raw_reads, working_dir)
 
     # Import data
-    paired_end_sequences = qiime2.Artifact.import_data('SampleData[PairedEndSequencesWithQuality]', str(working_dir))
-    paired_end_sequences.save(str(qiime2_artifacts / 'paired-end-sequences.qza'))
+    paired_end_sequences = qiime2.Artifact.import_data(
+        'SampleData[PairedEndSequencesWithQuality]', str(working_dir))
+    paired_end_sequences.save(
+        str(qiime2_artifacts / 'paired-end-sequences.qza'))
     # paired_end_sequences.export_data(tmp_output)
 
     # Load plugins
     plugin_manager = PluginManager(True)
-    
+
     # Use demux for visualization
     demux = plugin_manager.plugins['demux']
     summarize = demux.actions['summarize']
@@ -94,7 +114,7 @@ def main():
 
     # Use dada2 for denoising
     dada2 = plugin_manager.plugins['dada2']
- 
+
     denoise_single = dada2.actions['denoise_single']
     result = denoise_single(
         demultiplexed_seqs=paired_end_sequences,
@@ -112,24 +132,29 @@ def main():
     #     trim_left_r=10,
     #     )
     result.table.save(str(qiime2_artifacts / 'table.qza'))
-    result.representative_sequences.save(str(qiime2_artifacts / 'representative_sequences.qza'))
+    result.representative_sequences.save(
+        str(qiime2_artifacts / 'representative_sequences.qza'))
     result.denoising_stats.save(str(qiime2_artifacts / 'denoising_stats.qza'))
 
     # Use metadata plugin for visualization stats - tabulate
     metadata = plugin_manager.plugins['metadata']
     tabulate = metadata.actions['tabulate']
-    tab_denoising_stats = tabulate(result.denoising_stats.view(qiime2.Metadata))
-    tab_denoising_stats.visualization.save(str(qiime2_artifacts / 'tab_denoising_stats.qzv'))
+    tab_denoising_stats = tabulate(
+        result.denoising_stats.view(qiime2.Metadata))
+    tab_denoising_stats.visualization.save(
+        str(qiime2_artifacts / 'tab_denoising_stats.qzv'))
     # tab_denoising_stats.visualization.export_data(tmp_output)
 
     # Use feature-table plugin for visualization table - summarize
     feature_table = plugin_manager.plugins['feature-table']
     summarize = feature_table.actions['summarize']
     result_table_summary = summarize(table=result.table)
-    result_table_summary.visualization.export_data(tmp_output / 'table_summary')
-    feature_freqs = pd.read_csv(tmp_output / 'table_summary' / 'feature-frequency-detail.csv',
-                                names=['feature_id', 'frequency'],
-                                skiprows=1)
+    result_table_summary.visualization.export_data(
+        tmp_output / 'table_summary')
+    feature_freqs = pd.read_csv(
+        tmp_output / 'table_summary' / 'feature-frequency-detail.csv',
+        names=['feature_id', 'frequency'],
+        skiprows=1)
 
     # Use feature-table plugin for visualization table - tabulate-seqs
     tabulate_sequences = feature_table.actions['tabulate_seqs']
@@ -151,29 +176,34 @@ def main():
     df_seqs_freqs = pd.merge(df_seqs, feature_freqs, on='feature_id')
     # Save OTU table
     df_seqs_freqs['frequency'] = df_seqs_freqs['frequency'].astype(int)
-    df_seqs_freqs.drop('feature_id', axis=1).to_csv(output / 'OTU.csv', index=False)
+    df_seqs_freqs.drop('feature_id', axis=1).to_csv(output / 'ASV.csv',
+                                                    index=False)
 
     # Use feature-classifier plugin for taxonomy assignment
     classifier_path = Path(args['database'])
     feature_classifier = plugin_manager.plugins['feature-classifier']
     classify_sklearn = feature_classifier.actions['classify_sklearn']
     classifier = qiime2.Artifact.load(classifier_path)
-    
+
     result_taxonomy = classify_sklearn(reads=result.representative_sequences,
                                        classifier=classifier)
     result_taxonomy.classification.save(str(qiime2_artifacts / 'taxonomy.qza'))
-    
-    tab_taxonomy = tabulate(result_taxonomy.classification.view(qiime2.Metadata))
+
+    tab_taxonomy = tabulate(
+        result_taxonomy.classification.view(qiime2.Metadata))
     tab_taxonomy.visualization.save(str(qiime2_artifacts / 'taxonomy.qzv'))
     tab_taxonomy.visualization.export_data(tmp_output / 'taxonomy')
 
     # Save taxonomy to tsv file
-    taxanomy_metadata = pd.read_csv(tmp_output / 'taxonomy' / 'metadata.tsv',
-                                    sep='\t',
-                                    skiprows=2,
-                                    names=['feature_id', 'taxonomy', 'confidence'])
-    taxonomy = df_seqs_freqs.merge(taxanomy_metadata, on='feature_id', how='left')
-    taxonomy.drop('feature_id', axis=1).to_csv(output / 'taxonomy.tsv', index=False, sep='\t')
+    taxanomy_metadata = pd.read_csv(
+        tmp_output / 'taxonomy' / 'metadata.tsv',
+        sep='\t',
+        skiprows=2,
+        names=['feature_id', 'taxonomy', 'confidence'])
+    taxonomy = df_seqs_freqs.merge(
+        taxanomy_metadata, on='feature_id', how='left')
+    taxonomy.drop('feature_id', axis=1).to_csv(
+        output / 'taxonomy.tsv', index=False, sep='\t')
 
     # Use taxa plugin for visualization taxonomy - barplot
     taxa = plugin_manager.plugins['taxa']
