@@ -43,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
                                     reverse_raw_reads: Path,
-                                    working_dir: Path) -> None:
+                                    working_dir: Path) -> str:
     ''' Prepare files for qiime pipeline (should be gz files with _R1_001.fastq.gz
         and _R2_001.fastq.gz in filename)
     '''
@@ -70,6 +70,7 @@ def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
     # Prepare metadata file
     with open(working_dir / 'metadata.yml', 'w') as f:
         f.write('')
+    return sample_name
 
 
 def main():
@@ -93,7 +94,7 @@ def main():
     forward_raw_reads = Path(args['forward_reads'])
     reverse_raw_reads = Path(args['reverse_reads'])
 
-    prepare_data_for_qiime_pipeline(
+    sample_name = prepare_data_for_qiime_pipeline(
         forward_raw_reads, reverse_raw_reads, working_dir)
 
     # Import data
@@ -176,6 +177,7 @@ def main():
     df_seqs_freqs = pd.merge(df_seqs, feature_freqs, on='feature_id')
     # Save OTU table
     df_seqs_freqs['frequency'] = df_seqs_freqs['frequency'].astype(int)
+    df_seqs_freqs.rename(columns={'frequency': sample_name}, inplace=True)
     df_seqs_freqs.drop('feature_id', axis=1).to_csv(output / 'ASV.csv',
                                                     index=False)
 
@@ -214,7 +216,7 @@ def main():
 
     # Remove temporary files
     shutil.rmtree(working_dir)
-    shutil.rmtree(tmp_output)
+    # shutil.rmtree(tmp_output)
 
 
 if __name__ == "__main__":
