@@ -129,3 +129,5 @@ dmypy.json
 
 # Output files
 output
+output*
+data/standart_dataset/
