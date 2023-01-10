@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
         required=False, default=False)
     parser.add_argument(
         '-t', '--threads', help='Number of threads (default = 8)',
-        required=False, default="8")
+        required=False, default=8, type=int)
     parser.add_argument(
         '--trunc_len', help='dada2 denoise_single - trunc length',
         required=False, default=150, type=int)
@@ -104,6 +104,7 @@ def main():
         str(qiime2_artifacts / 'paired-end-sequences.qza'))
     # paired_end_sequences.export_data(tmp_output)
 
+    num_threads = args['threads']
     # Load plugins
     plugin_manager = PluginManager(True)
 
@@ -121,6 +122,7 @@ def main():
         demultiplexed_seqs=paired_end_sequences,
         trunc_len=args['trunc_len'],
         trim_left=args['trim_left'],
+        n_threads=num_threads
         )
 
     # denoise_paired = dada2.actions['denoise_paired']
@@ -188,7 +190,8 @@ def main():
     classifier = qiime2.Artifact.load(classifier_path)
 
     result_taxonomy = classify_sklearn(reads=result.representative_sequences,
-                                       classifier=classifier)
+                                       classifier=classifier,
+                                       n_jobs=num_threads)
     result_taxonomy.classification.save(str(qiime2_artifacts / 'taxonomy.qza'))
 
     tab_taxonomy = tabulate(
@@ -216,7 +219,7 @@ def main():
 
     # Remove temporary files
     shutil.rmtree(working_dir)
-    # shutil.rmtree(tmp_output)
+    shutil.rmtree(tmp_output)
 
 
 if __name__ == "__main__":
