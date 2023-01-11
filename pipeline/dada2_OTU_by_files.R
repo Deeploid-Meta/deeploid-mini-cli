@@ -1,0 +1,48 @@
+# !/usr/bin/env Rscript
+suppressPackageStartupMessages(library("argparse"))
+library(dada2); packageVersion("dada2")
+# create parser object
+parser <- ArgumentParser()
+
+parser$add_argument("-t", "--type", type = "character", default = "otu",
+    help = "Enter type for start: otu - create OTU, taxa - create taxonomy.")
+parser$add_argument("-1", "--forward", type = "character",
+    help = "Enter forward reads pattern example: *_R1_001.fastq")
+parser$add_argument("-2", "--reverse", type = "character",
+    help = "Enter reverse reads pattern example: *_R2_001.fastq")
+parser$add_argument("-o", "--output", type = "character", default = "/outupt",
+    help = "Enter path to output result")
+
+args <- parser$parse_args()
+
+path <- args$path
+
+nF1 <- system.file("extdata", args$forward, package="dada2")
+fnR1 <- system.file("extdata", args$forward, package="dada2")
+filtF1 <- tempfile(fileext=".fastq.gz")
+filtR1 <- tempfile(fileext=".fastq.gz")
+
+
+
+out <- filterAndTrim(fwd=fnF1, filt=filtF1, rev=fnR1, filt.rev=filtR1,
+                  trimLeft=10, truncLen=c(240, 200), 
+                  maxN=0, maxEE=2,
+                  compress=TRUE, verbose=TRUE)
+
+derepF1 <- derepFastq(filtF1, verbose=TRUE)
+derepR1 <- derepFastq(filtR1, verbose=TRUE)
+
+errF <- learnErrors(derepF1, multithread=FALSE) 
+errR <- learnErrors(derepR1, multithread=FALSE)
+
+
+dadaF1 <- dada(derepF1, err=errF, multithread=FALSE)
+dadaR1 <- dada(derepR1, err=errR, multithread=FALSE)
+
+
+merger1 <- mergePairs(dadaF1, derepF1, dadaR1, derepR1, verbose=TRUE)
+merger1.nochim <- removeBimeraDenovo(merger1, multithread=FALSE, verbose=TRUE)
+
+seqtab <- makeSequenceTable(list(merger1))
+seqtab.nochim <- removeBimeraDenovo(seqtab, verbose=TRUE)
+write.table(seqtab, file=paste(args$output, "OTU.tsv", sep = "/"), quote=FALSE, sep='\t', col.names = NA)
