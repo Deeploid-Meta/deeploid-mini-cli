@@ -3,6 +3,14 @@ Deblur
 
 Deblur is a greedy deconvolution algorithm for amplicon sequencing based on Illumina Miseq/Hiseq error profiles.
 
+
+```
+conda install -c conda-forge mamba
+mamba create -n qiime2 -c qiime2 -c bioconda -c conda-forge -c defaults qiime2
+conda deactivate base
+conda activate qiime2
+```
+
 Install
 =======
 - Deblur requires Python 3.8. If Python 3.8 is not installed, you can create a [conda](http://conda.pydata.org/docs/install/quick.html) environment for Deblur using:
@@ -15,6 +23,7 @@ conda install wget
 wget https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
 conda env create -n qiime2 --file qiime2-2022.8-py38-linux-conda.yml
 rm qiime2-2022.8-py38-linux-conda.yml
+conda deactivate base
 conda activate qiime2
 
 ```
