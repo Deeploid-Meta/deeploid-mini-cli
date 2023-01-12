@@ -8,7 +8,7 @@
 
 Запустить можно вот такой командой (для удобства все необходимые файлы лежат в репозитории):
 
-    python qiime2_pipeline.py -1 data/SRR22104214_1.fastq -2 data/SRR22104214_2.fastq -db data/gg-13-8-99-515-806-nb-classifier.qza --outdir output
+    python pipelines/qiime2_pipeline.py -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus.fasta -tx databases/GG/85_otu_taxonomy.txt -t 8 --outdir output
 
 ## 3. Результат
 
