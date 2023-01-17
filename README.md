@@ -29,34 +29,61 @@
 </h4>
 
 -----------------------------------------------
-```
-Второй чекпоинт - до 13 января
-    
-    Что будет: Определено как представляете работу вовне, как будут собираться и храниться данные. Описаны критерии качества плохих данных. Есть понимание о том что можно визуализировать в рамках работы с данными (в идеале не только сырые данные и метрики над ними)
-    
-    Как проверять:
-    
-    - Есть описание и обоснование хранения данных, агрегации источников данных. 
-    - Есть критерии качественных данных, и решения, что будем делать, если к нам текут не качественные данные
-    - Прототип дашборда - визуализации, демонстрация влияния данных на целевые метрики, бенчмарки
-    - Есть понятное популярное описание логики работы с данными в проекте, способы увеличения объема данных и/или их качества
-```
 
-Сейчас мы идем к тому, что вместо огромного количества команд проанализировать метаном можно всего одной командой, глубоко погруженные в тему смогут добавить дополнительные аргументы и из разных пайплайнов взять самое лучшее, а для менее погруженных мы предложим наилучшую базовую настройку 
+Сейчас мы идем к тому, что вместо огромного количества команд проанализировать метаном можно всего одной командой, глубоко погруженные в тему смогут добавить дополнительные аргументы и из разных пайплайнов взять самое лучшее, а для менее погруженных мы предложим наилучшую базовую настройку.
 
+Tasklist
 
+- [ ] Определено как представляете работу вовне, как будут собираться и храниться данные.
+- [ ] Описаны критерии качества плохих данных
+- [ ] Есть понимание о том что можно визуализировать в рамках работы с данными (в идеале не только сырые данные и метрики над ними)
 
+Как проверять:
+
+- [ ] Есть описание и обоснование хранения данных, агрегации источников данных.
+- [ ] Есть критерии качественных данных, и решения, что будем делать, если к нам текут не качественные данные
+- [ ] Прототип дашборда - визуализации, демонстрация влияния данных на целевые метрики, бенчмарки
+- [ ] Есть понятное популярное описание логики работы с данными в проекте, способы увеличения объема данных и/или их качества
 
 ## &#128204;Features
+`Будем заявлять что для диеты?`
+### Под капотом сейчас
 
-### Под капотом  (Мы предоставляем сценарий):
+  1. Загрузка данных  в CLI
+  2. Простейшая чистка данных с ошибками
+  3. Удаление шума за счет математики (denoising)
+  4. Кластеризация
+  5. Такосономия
 
-1. Обработка данных
-2. Отсев признаков
-3. Обучение модели
-4. Прогноз
+### Под капотом с ML
 
+  1. Загрузка данных в CLI
+  2. Проверка качества данных и эксперимента
+  3. Отбраковка данных/Учет выявленных зависимостей
+  4. Удаление шума за счет математики (denoising)
+  5. Кластеризация
+  6. Такосономия
 
+Визуализация **пути** пользователя
+
+<img src='https://g.gravizo.com/svg?
+ digraph G {
+   "Загрузка данных  в CLI" -> "Простейшая чистка данных (merging, trimming)";
+   "Простейшая чистка данных (merging, trimming)" -> "Кластеризация OTU (vsearch)";
+   "Простейшая чистка данных (merging, trimming)" -> "Удаление шума (DADA2, deblur)" ->  "Кластеризация OTU (vsearch)";
+   "Кластеризация OTU (vsearch)" -> "Таксономия" -> "Визуализация результатов";
+   "Этап 1" -> "Этап 2" -> "Этап 2.1" -> "Этап 3" -> "Этап 4"-> "Этап 5";
+ }
+'/>
+
+### Возможный скрипт
+
+Описание qiime2_pipeline.py - **QIIME2_pipeline.md**
+В описании предлагаю всем добавить пример команды, которая запускает скрипт, например у меня это
+    
+    python pipelines/qiime2_pipeline.py -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus.fasta -tx databases/GG/85_otu_taxonomy.txt -t 8 --outdir output
+
+Если скачать репозиторий и активировать окружение с qiime из файла qiime2-2022.8-py38-linux-conda.yml, то эта команда запустит пайплайн без необходимости что-то еще скачивать. Если все так сделаем - то тому кто будет собириать snakemake будет сильно проще.
 
 #### ⚡ Пример работы
 
@@ -66,47 +93,76 @@
 
 ## &#128204;Structure
 
-1. Структура папок:
+### Структура папок
 
-- **data** - в эту папку кладем данные для скриптов, сейчас там для примера лежит пара файлов из стандартного датасета
-- **databases** - в эту папку сохраняем базы данных, сейчас там для примера лежит урезанная база GreenGenes
-- **pipelines** - сюда кладем наши пайплайны, который потом будут вызываться SnakeMake'ом, мой скрипт - qiime2_pipeline.py
+По аналогии с Проектом [Дани](https://github.com/aglabx/paniman)
 
-2. Описания скриптов
-
-Описание qiime2_pipeline.py - **QIIME2_pipeline.md**
-В описании предлагаю всем добавить пример команды, которая запускает скрипт, например у меня это
-    
-    python pipelines/qiime2_pipeline.py -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus.fasta -tx databases/GG/85_otu_taxonomy.txt -t 8 --outdir output
-
-Если скачать репозиторий и активировать окружение с qiime из файла qiime2-2022.8-py38-linux-conda.yml, то эта команда запустит пайплайн без необходимости что-то еще скачивать. Если все так сделаем - то тому кто будет собириать snakemake будет сильно проще.
-
+```bash
+├──envs # Зависимости окружений для SnakeMake
+│   ├── dada.yaml
+│   ├── deblur.yaml
+│   └── vsearch.yaml
+├──markdown # Хранение файлов для README.md 
+│   ├── photo.png
+│   └── lol.gif
+├──rules # Правила для SnakeMake
+│   ├── dada.smk
+│   ├── deblur.yaml
+│   └── vsearch.smk
+├──workflow # Зависимости SnakeMake ( тут его архитектура)
+│   └── snakefile
+├──databases # Эти папки SnakeMake создает/удаляет, просто здесь обозначил 
+│   ├── fastq
+│   │   ├── input
+│   │   └── output
+│   ├── fasta
+│   │   ├── input
+│   │   └── output
+│   └── sra
+│       ├── input
+│       └── output
+├──README.md
+└──deeploid_cli.py
+```
 
 ## &#128204;Installation
 
 С использованием conda, mamba и bioconda
-```
-conda install -c conda-forge mamba
-mamba create -n qiime2 -c qiime2 -c bioconda -c conda-forge -c defaults qiime2
-conda deactivate base
-conda activate qiime2
-```
 
-Вариант для любой платформы [ссылка на документацию qiime2](https://docs.qiime2.org/2022.8/install/native/)
-
-```
-conda update conda
-conda install wget
-wget https://data.qiime2.org/distro/core/qiime2-2022.8-py38-linux-conda.yml
-conda env create -n qiime2 --file qiime2-2022.8-py38-linux-conda.yml
-rm qiime2-2022.8-py38-linux-conda.yml
-conda deactivate base
-conda activate qiime2
-```
+PANIMAN is available in conda, to install and set is use following commands:
+1) Download PANIMAN in separate conda environment: `conda create -n paniman -c conda-forge -c bioconda -c aglab paniman`
+2) Activate the environment: `conda activate paniman`
 
 ## &#128204; Quick Start
 
-В разработке
+PANIMAN is available in conda, to install and set is use following commands:
+
+1) EggNOG-mapper database (~50GB) is required to run PANIMAN.
+   You can download it or set your own one if you have it already. Use `paniman_download_db` tool to set or download databases. Examples:
+
+   ```bash
+   # Download EggNOG db
+   paniman_download_db -o /path/to/database/directory
+   
+   # Set your EggNOG db
+   paniman_download_db -e /path/to/eggnog/database
+   ```
+
+2) To run PANIMAN on your reads use one of the following commands:
+
+   ```bash
+   # If you have only assembly
+   paniman -m fasta -a /path/to/assembly.fasta -t 32 -o /path/to/outdir
+
+   # If you have assembly and closest reference proteins
+   paniman -m fasta_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -t 32 -o /path/to/outdir
+
+   # If you have assembly and RNA-seq reads
+   paniman -m fasta_rna -a /path/to/assembly.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
+
+   # If you have assembly, closest reference proteins and RNA-seq data 
+   paniman -m fasta_rna_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
+   ```
 
 ## &#128204;Community
 
