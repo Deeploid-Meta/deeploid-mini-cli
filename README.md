@@ -140,16 +140,7 @@ Tasklist
 │   └── vsearch_pipleline.py
 ├──workflow # Зависимости SnakeMake ( тут его архитектура)
 │   └── snakefile
-├──databases # Эти папки SnakeMake создает/удаляет в процессе работы, просто здесь обозначил 
-│   ├── fastq
-│   │   ├── input
-│   │   └── output
-│   ├── fasta
-│   │   ├── input
-│   │   └── output
-│   └── sra
-│       ├── input
-│       └── output
+├──databases 
 ├──README.md
 └──deeploid_cli.py
 ```
