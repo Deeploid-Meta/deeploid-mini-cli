@@ -29,97 +29,95 @@
 </h4>
 
 -----------------------------------------------
-
-Сейчас мы идем к тому, что вместо огромного количества команд проанализировать метаном можно всего одной командой, глубоко погруженные в тему смогут добавить дополнительные аргументы и из разных пайплайнов взять самое лучшее, а для менее погруженных мы предложим наилучшую базовую настройку.
-
-Tasklist 
-
-- [X] Определено как представляете работу вовне, как будут собираться и храниться данные.
-
-Мы планируем, что пользователь скачивает CLI себе на машину. Также пользователь сам полностью выбирает данные и загружет их, согдасно пайплайну
-
-- [X] Описаны критерии качества плохих данных
-
-Для нас данные могут стать *плохими* в 3 случаях:
-
-- плохой забор проб их транспортировка и хранение
-- Дешевый секвенатор ДНК
-- Неправильная обработка сырых данных
-
-Критерии - QC, филогения, альфа/бета разнообразие
-
-- [X] Есть понимание о том что можно визуализировать в рамках работы с данными (в идеале не только сырые данные и метрики над ними) -да, прошлый пункт
-
-Как проверять:
-
-- [X] Есть описание и обоснование хранения данных, агрегации источников данных.
-
-В рамках CLI пользователь сам над этим думает. В рамка API у нас есть собсьвенный сервер.
-
-- [X] Есть критерии качественных данных, и решения, что будем делать, если к нам текут не качественные данные
-
-Есть понимание некачественных данных. Есть проверки данных. Пользователя предупреждаем о точности конечнойю
-
-- [ ] Прототип дашборда - визуализации, демонстрация влияния данных на целевые метрики, бенчмарки
-
-`ДАША и НИКИТА ЭТОТ ПУНКТ НЕ ЗАБЫТЬ!`
-
-- [X] Есть понятное популярное описание логики работы с данными в проекте, способы увеличения объема данных и/или их качества
-
-Да, все есть все дальнейших пункты про это
-
 ## &#128204;Features
 
+  Начиная процесс анализа метагеномных данных мы столкнулись с тем, что проблемы есть не только с данными, но и с инструментами. Существующие решения не только громоздкие, но и позволяют сделать ошибки неопытным пользователям. А эти ошибки приводят к неправильной интерпретации результатов, что недопустимо, когда это касается, например, здоровья человека.
 
-### Под капотом сейчас
+### Пайплайны 
+  *Наглядное сравнение:*
 
-  1. Загрузка данных  в CLI
-  2. Простейшая чистка данных с ошибками
-  3. Удаление шума за счет математики (denoising)
-  4. Кластеризация
-  5. Такосономия
+- **deeploid_cli**
 
-### Под капотом с ML
+  ```sh
+  #  If you have assembly and RNA-seq reads
+   deeploid_cli -m fasta_rna -a /path/to/assembly.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
+  ```
 
-  1. Загрузка данных в CLI
-  2. Проверка качества данных и эксперимента
-  3. Отбраковка данных/Учет выявленных зависимостей
-  4. Удаление шума за счет математики (denoising)
-  5. Кластеризация
-  6. Такосономия
+- **qiime2 + deblur**
 
-Визуализация **пути** пользователя
+  ```sh
+  qiime tools import \
+   --type SampleData[PairedEndSequencesWithQuality] \
+   --input-path seqs/ \
+   --output-path q2/paired-end-demux.qza \
+   --input-format CasavaOneEightSingleLanePerSampleDirFmt
 
-<img src='https://g.gravizo.com/svg?
- digraph G {
-   "Загрузка данных  в CLI" -> "Простейшая чистка данных (merging, trimming)";
-   "Простейшая чистка данных (merging, trimming)" -> "Кластеризация OTU (vsearch)";
-   "Простейшая чистка данных (merging, trimming)" -> "Удаление шума (DADA2, deblur)" ->  "Кластеризация OTU (vsearch)";
-   "Кластеризация OTU (vsearch)" -> "Таксономия" -> "Визуализация результатов";
-   "Этап 1" -> "Этап 2" -> "Этап 2.1" -> "Этап 3" -> "Этап 4"-> "Этап 5";
- }
-'/>
+  qiime demux summarize \
+   --i-data q2/paired-end-demux.qza \
+   --o-visualization q2/reports/paired-end-demux_summary.qzv
 
-### Возможный скрипт
+  qiime vsearch join-pairs \
+  --i-demultiplexed-seqs paired-end-demux.qza \
+  --o-joined-sequences demux-joined.qza \
+  --p-minmergelen 240 \
+  --p-maxmergelen 270 \
+  --p-maxdiffs 10
 
-Описание qiime2_pipeline.py - **QIIME2_pipeline.md**
-В описании предлагаю всем добавить пример команды, которая запускает скрипт, например у меня это
-    
-    python pipelines/qiime2_pipeline.py -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus.fasta -tx databases/GG/85_otu_taxonomy.txt -t 8 --outdir output
+  qiime quality-filter q-score-joined \
+  --i-demux demux-joined.qza \
+  --o-filtered-sequences demux-filtered.qza \
+  --o-filter-stats demux-filter-stats.qza
 
-Если скачать репозиторий и активировать окружение с qiime из файла qiime2-2022.8-py38-linux-conda.yml, то эта команда запустит пайплайн без необходимости что-то еще скачивать. Если все так сделаем - то тому кто будет собириать snakemake будет сильно проще.
+  qiime deblur denoise-16S \
+  --i-demultiplexed-seqs demux-filtered.qza \
+  --p-trim-length 240 \
+  --o-representative-sequences rep-seqs.qza \
+  --o-table table.qza \
+  --p-sample-stats \
+  --p-jobs-to-start 10 \
+  --o-stats deblur-stats.qza
+  qiime deblur visualize-stats --i-deblur-stats deblur-stats.qza --o-visualization reports/deblur-stats.qzv
+  qiime feature-table summarize --i-table table.qza --o-visualization reports/table.qzv
+  qiime feature-table tabulate-seqs --i-data rep-seqs.qza --o-visualization reports/rep-seqs.qzv
+  ```
 
-#### ⚡ Пример работы
+Наш инструмент, лишен недостатков конкурентов и упрощает до одной строки получение нужных результатов. Но при этом, глубоко погруженные в тему, смогут добавить дополнительные аргументы и взять самое лучшее из других пайплайнов.
 
-```
-чикпук
-```
+### Данные
 
-## &#128204;Structure
+Погрузившись в предметную область, поняли, что данные могут стать *плохими* в 4 случаях:
 
-### Структура папок
+- Плохой забор проб, их транспортировка и хранение
+- Дешевые методы секвенирования ДНК (ошибки делают)
+- Ограничения по длине на исследование 16s (потеря инфы, если не полностью читать)
+- Неправильная обработка сырых данных (тримминг, мержинг)
 
-По аналогии с Проектом [Дани](https://github.com/aglabx/paniman)
+Сейчас мы способны решить только последний пункт, но впоследствии мы хотим обучить нейронку на отслеживание остальных проблем.
+
+#### Под капотом сейчас
+
+    1. Загрузка данных  в CLI
+    2. Простейшая чистка данных с ошибками
+    3. Удаление шума за счет математики (denoising)
+    4. Кластеризация
+    5. Химеринг
+    6. Такосономия
+    7. Визуализация
+
+#### Под капотом с ML
+
+    1. Загрузка данных в CLI
+    2. Проверка качества данных и эксперимента (обученная нейронка)
+    3. Отбраковка данных/учет выявленных зависимостей
+    4. Удаление шума за счет математики (denoising)
+    5. Кластеризация
+    6. Химеринг
+    7. Такосономия
+    8. Визуализация
+
+## Структура репозитория
+
+-----------------------------------------------
 
 ```bash
 ├──envs # Зависимости окружений для SnakeMake
@@ -145,48 +143,61 @@ Tasklist
 └──deeploid_cli.py
 ```
 
+### Визуализация **пути** продвинутого пользователя
+![Текст с описанием картинки](/markdown/arch_full.jpg)
+
+
+## Ну и как же проверять качество данных и полученных результатов?
+
+---
+
+### Сырые данные
+
+ Для проверки сырых данных есть FastQC - это простой способ проверки качества необработанных данных, поступающих из высокопроизводительных систем секвенирования.
+
+![Текст с описанием картинки](/markdown/fastQC.png)
+
+### После таксономического анализа
+
+Для анализа таксономии есть метрики филогенетического разнообразия
+
+|  Филогенетическое разнообразие  | Альфа-разнообразие | Бета-разнообразие |
+| ------------- | ------------- | ------------- |
+|![Текст с описанием картинки](/markdown/philog_tree.png)  | ![Текст с описанием картинки](/markdown/alpha_chao.png)  | ![Текст с описанием картинки](/markdown/beta_kertice.png)  |
+
+
 ## &#128204;Installation
 
 С использованием conda, mamba и bioconda
 
 PANIMAN is available in conda, to install and set is use following commands:
-1) Download PANIMAN in separate conda environment: `conda create -n paniman -c conda-forge -c bioconda -c aglab paniman`
-2) Activate the environment: `conda activate paniman`
+1) Download PANIMAN in separate conda environment: `conda create -n deeploid_cli -c conda-forge -c bioconda -c deeploid_cli`
+2) Activate the environment: `conda activate deeploid_cli`
 
 ## &#128204; Quick Start
 
-PANIMAN is available in conda, to install and set is use following commands:
+deeploid_cli is available in conda, to install and set is use following commands:
 
-1) EggNOG-mapper database (~50GB) is required to run PANIMAN.
-   You can download it or set your own one if you have it already. Use `paniman_download_db` tool to set or download databases. Examples:
-
-   ```bash
-   # Download EggNOG db
-   paniman_download_db -o /path/to/database/directory
-   
-   # Set your EggNOG db
-   paniman_download_db -e /path/to/eggnog/database
-   ```
-
-2) To run PANIMAN on your reads use one of the following commands:
+1) To run deeploid_cli on your reads use one of the following commands:
 
    ```bash
    # If you have only assembly
-   paniman -m fasta -a /path/to/assembly.fasta -t 32 -o /path/to/outdir
+   deeploid_cli -m fasta -a /path/to/assembly.fasta -t 32 -o /path/to/outdir
 
    # If you have assembly and closest reference proteins
-   paniman -m fasta_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -t 32 -o /path/to/outdir
+   deeploid_cli -m fasta_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -t 32 -o /path/to/outdir
 
    # If you have assembly and RNA-seq reads
-   paniman -m fasta_rna -a /path/to/assembly.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
+   deeploid_cli -m fasta_rna -a /path/to/assembly.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
 
    # If you have assembly, closest reference proteins and RNA-seq data 
-   paniman -m fasta_rna_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
+   deeploid_cli -m fasta_rna_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
    ```
 
 ## &#128204;Community
 
 ### Расти вместе с AI Talent Hub!
+
 На базе [AI Talent Hub](https://ai.itmo.ru/) Университет ИТМО совместно с компанией Napoleon IT запустил образовательную программу «Инженерия машинного обучения». Это не краткосрочные курсы без практического применения, а онлайн-магистратура нового формата, основанная на реальном рабочем процессе в компаниях.
 
 Мы команда Deeploid:
@@ -209,6 +220,7 @@ PANIMAN is available in conda, to install and set is use following commands:
 ## Цитирование
 
 Если вы используете CLI в своих исследованиях, рассмотрите возможность цитирования
+
 ```python
 @misc{=Command Line Interface,
     title={High Performance CLI},
@@ -222,6 +234,11 @@ PANIMAN is available in conda, to install and set is use following commands:
 
 - [AI Talent Hub](https://ai.itmo.ru/)
 - [ПИШ](https://analytics.engineers2030.ru/schools/itmo/)
+- [Updating the 97% identity threshold for 16S ribosomal RNA OTUs](https://www.biorxiv.org/content/10.1101/192211v1.full)
+- [Comparing bioinformatic pipelines for microbial 16S rRNA amplicon sequencing](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0227434#pone.0227434.s002)
+
+
 ## Лицензия
 
  [The MIT License](https://opensource.org/licenses/mit-license.php)
+
