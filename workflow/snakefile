@@ -1,48 +1,13 @@
-# TODO
+# # TODO
 
 rule all:
     input:
-        eggnog = f"{OUTDIR}/eggnog/{PREFIX}.emapper.annotations",
-        busco =  f"{OUTDIR}/busco/{PREFIX}_specific.txt" if BUSCO_LINEAGE else "",
-        
-rule locals:
-    params:
-        ninja_path = "/home/dzilov/data_zilov/soft/NINJA-0.97-cluster_only/NINJA",
-        prothint_path = "/media/eternus1/projects/zilov/soft/ProtHint-2.6.0/bin",
-        eggnog_db = "/media/eternus1/nfs/projects/shared/databases/eggnog_database_212",
-        genemark_path = "/media/eternus1/projects/zilov/soft/gmes_linux_64",
-        
-locals = rules.locals.params
-
-rule envs:
-    params:
-        repeatmodeler = "../envs/repeatmodeler.yaml",
-        bedtools = "../envs/bedtools.yaml",
-        braker = "../envs/braker.yaml",
-        star = "../envs/star.yaml",
-        eggnog = "../envs/eggnog.yaml",
-        samtools = "../envs/samtools.yaml",
-        hisat2 = "../envs/hisat2.yaml",
-        busco = "../envs/busco.yaml"
-      
-envs = rules.envs.params
-
-if not SOFTMASKED:
-    print('poop')
-    include: "../rules/repeatmasker.smk"
-    include: "../rules/bedtools.smk"
-    GENOME = rules.bedtools.output.softmasked_fasta
-
-if ALIGNER == "hisat":
-    include: "../rules/hisat.smk"
-    SORTED_BAM = rules.hisat_sort_alignment.output.sorted_alignment
-elif ALIGNER == "star":
-    include: "../rules/star.smk"
-    SORTED_BAM = rules.star_align.output.sorted_alignment
-
-include: config["braker_mode"]
-
-if BUSCO_LINEAGE:
-    include: "../rules/busco.smk"
-
-include: "../rules/eggnog.smk"
+        script = "../pipelines/qiime2_pipeline.py",
+    shell:
+        """
+            python3 {script} \
+            -1 data/standart_dataset/mock_2_R1.fastq \
+            -2 data/standart_dataset/mock_2_R2.fastq \
+            -db databases/GG/85_otus.fasta \
+            -tx databases/GG/85_otu_taxonomy.txt -t 8 --outdir output
+        """
