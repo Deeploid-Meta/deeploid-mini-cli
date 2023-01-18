@@ -170,8 +170,8 @@
 
 С использованием conda, mamba и bioconda
 
-PANIMAN is available in conda, to install and set is use following commands:
-1) Download PANIMAN in separate conda environment: `conda create -n deeploid_cli -c conda-forge -c bioconda -c deeploid_cli`
+deeploid_cli is available in conda, to install and set is use following commands:
+1) Download deeploid_cli in separate conda environment: `conda create -n deeploid_cli -c conda-forge -c bioconda -c deeploid_cli`
 2) Activate the environment: `conda activate deeploid_cli`
 
 ## &#128204; Quick Start
