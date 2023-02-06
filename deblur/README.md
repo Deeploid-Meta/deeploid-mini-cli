@@ -3,6 +3,7 @@ Deblur
 
 Deblur is a greedy deconvolution algorithm for amplicon sequencing based on Illumina Miseq/Hiseq error profiles.
 
+ЧЕрез windows не запускается
 
 ```
 conda install -c conda-forge mamba
