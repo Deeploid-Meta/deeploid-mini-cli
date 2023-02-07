@@ -11,6 +11,10 @@ conda deactivate
 ```bash
 conda env create -f ./env_dada2/environment.yml
 ```
+Активировать среду
+```bash
+conda activate dada2-v1.14
+```
 ## 2. Запустить скрипт по установке argparse
 ```bash
 Rscript pipeline/upl_libraries
