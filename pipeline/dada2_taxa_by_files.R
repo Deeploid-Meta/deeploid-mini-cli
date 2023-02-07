@@ -19,8 +19,8 @@ args <- parser$parse_args()
 
 path <- args$path
 
-nF1 <- system.file("extdata", args$forward, package="dada2")
-fnR1 <- system.file("extdata", args$forward, package="dada2")
+fnF1 <- system.file("extdata", args$forward, package="dada2")
+fnR1 <- system.file("extdata", args$reverse, package="dada2")
 filtF1 <- tempfile(fileext=".fastq.gz")
 filtR1 <- tempfile(fileext=".fastq.gz")
 
