@@ -1,26 +1,6 @@
 #!/usr/bin/env Rscript
-# adjusting the R version
-system("sudo apt-get install libcurl4-openssl-dev")
-# argparse uploading only with mirror
-if (!require(argparse)) {
-  install.packages("argparse", repos = "https://mirror.truenetwork.ru/CRAN/")
-  library(argparse)
-}
-install.packages("curl")
-library("curl")
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install("dada2")
-library("dada2")
-# fix all packages that couldnt upload for depedencies
-if (!require(c("RCurl", "Rhtslib", "GenomeInfoDb", "GenomicRanges", "SummarizedExperiment", "Rsamtools", "GenomicAlignments", "ShortRead")) {
-  install.packages(c("RCurl", "Rhtslib", "GenomeInfoDb", "GenomicRanges", "SummarizedExperiment", "Rsamtools", "GenomicAlignments", "ShortRead"))
-  library(c("RCurl", "Rhtslib", "GenomeInfoDb", "GenomicRanges", "SummarizedExperiment", "Rsamtools", "GenomicAlignments", "ShortRead"))
-}
-# по окончании работы убрать комменты со след. 2ух строк
-# suppressPackageStartupMessages(library("argparse"))
-# library(dada2); packageVersion("dada2")
+suppressPackageStartupMessages(library("argparse"))
+library(dada2); packageVersion("dada2")
 # create parser object
 parser <- ArgumentParser()
 
