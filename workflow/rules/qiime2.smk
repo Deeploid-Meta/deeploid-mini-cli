@@ -1,4 +1,4 @@
-rule qiime:
+rule qiime2:
     input:
         "data/standart_dataset/mock_2_R1.fastq"
         "data/standart_dataset/mock_2_R2.fastq"
@@ -17,3 +17,6 @@ rule qiime:
             -2 {input[1]} -db {output[0]}  -tx {output[1]}
             -t {threads[0]}
         """
+
+
+
