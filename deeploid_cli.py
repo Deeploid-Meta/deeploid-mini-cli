@@ -36,15 +36,19 @@ def main(settings):
     '''
 
     # TODO : доделать эту команду для нашего снейкмейка
+    # if settings["debug"]:
+    #     snake_debug = "-n"
+    # else:
+    #     snake_debug = ""
 
     #Snakemake
-    #command = f"""
-    #snakemake --snakefile {settings["working_dir"]}/workflow/snakefile \
-    #          --configfile {settings["config_file"]} \
-    #          --cores {settings["threads"]} \
-    #          --use-conda ..."""
-    #print(command)
-    #os.system(command)
+    command = f"""
+    snakemake --snakefile {settings["execution_folder"]}/workflow/snakefile \
+              --configfile {settings["config_file"]} \
+              --cores {settings["threads"]} \
+              --use-conda """
+    print(command)
+    os.system(command)
     print('snakemake runs...')
 
 
@@ -69,7 +73,7 @@ if __name__ == '__main__':
         required=True)
     parser.add_argument(
         '-wd', '--working_dir', help='Path to execution directory',
-        required=False)
+        required=False, default="")
     parser.add_argument(
         '-db', '--database', help='Path to database (fasta)',
         required=False, default=False)
@@ -82,6 +86,7 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
 
     execution_folder = args["working_dir"]
+    execution_folder_danila = os.path.dirname(os.path.abspath(getsourcefile(lambda: 0)))
     execution_time = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
     random_letters = "".join([random.choice(string.ascii_letters) for n in range(3)])
     config_file = os.path.join(execution_folder, f"config/config_{random_letters}{execution_time}.yaml")
