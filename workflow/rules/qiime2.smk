@@ -1,20 +1,19 @@
 rule qiime2:
     input:
-        "data/standart_dataset/mock_2_R1.fastq"
-        "data/standart_dataset/mock_2_R2.fastq"
+        "FORWARD_READS"
+        "REVERSE_READS"
     output:
-        "databases/GG/85_otus.fasta"
-        "databases/GG/85_otu_taxonomy.txt"
+        "OUTDIR"
     conda:
         envs.qiime2
     threads: 
-        "8"
+        "THREADS"
     params:
         
     shell:
         """
             python scripts/qiime2_pipeline.py  -1 {input[0]} 
-            -2 {input[1]} -db {output[0]}  -tx {output[1]}
+            -2 {input[1]} -db {output[0]}  -tx {output[0]}
             -t {threads[0]}
         """
 
