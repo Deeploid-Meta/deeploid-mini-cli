@@ -5,16 +5,13 @@ from pathlib import Path, PurePath
 
 # read config
 
+TOOL = config["tool"]
+FORWARD_READS = config["forward_reads"]
+REVERSE_READS = config["reverse_reads"]
 OUTDIR = config["outdir"]
-GENOME = config["genome"]
-FORWARD_READ = config["forward_read"]
-REVERSE_READ = config["reverse_read"]
+DATABASE = config["database"]
 THREADS = ["threads"]
-
-
-# GENOME_DIR = Path(GENOME).parent.resolve()
-# print(GENOME_DIR)
-# PREFIX = PurePath(GENOME).stem
+WORKING_DIR = config["working_dir"]
 
 rule envs:
     params:

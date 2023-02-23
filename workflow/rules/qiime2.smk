@@ -6,7 +6,7 @@ rule qiime2:
         "databases/GG/85_otus.fasta"
         "databases/GG/85_otu_taxonomy.txt"
     conda:
-        "../envs/qiime2.yaml"
+        envs.qiime2
     threads: 
         "8"
     params:

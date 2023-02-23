@@ -1,5 +1,9 @@
 # Full instruction V1
 
+```
+python3 deeploid_cli.py --tool qiime2 -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -o /path/to/outdir
+```
+
 ## Install, set and run
 
 
