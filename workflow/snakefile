@@ -1,78 +1,31 @@
-# референс
-# https://github.com/aglabx/paniman/blob/main/workflow/snakefile
-
-from pathlib import Path, PurePath
-
-# read config
-
 TOOL = config["tool"]
 FORWARD_READS = config["forward_reads"]
 REVERSE_READS = config["reverse_reads"]
 OUTDIR = config["outdir"]
 DATABASE = config["database"]
-THREADS = config["threads"]
+THREADS = ["threads"]
 WORKING_DIR = config["working_dir"]
 
 rule envs:
     params:
-        qiime2 = "../envs/qiime2.yaml"
-        # qiime = "../envs/qiime.yaml"
+        qiime2 = "envs/qiime2.yaml"
       
 envs = rules.envs.params
 
-rule all: 
-    input: "rules/qiime2.smk"
-    #include: "qiime2.smk"
+rule qiime2:
+    input:
+        FORWARD_READS, 
+        REVERSE_READS
+    output:
+        OUTDIR
+    conda:
+        envs.qiime2
+    shell:
+        """
+            python scripts/qiime2_pipeline.py  -1 {input[0]} 
+            -2 {input[1]} -db {output[0]}  -tx {output[0]}
+            -t {threads[0]}
+        """
 
-## create symlink to genome to not create index files in genome folder
-# поработать с префиксом и прописать аккуратно переменные в snakefile и .smk
-
-# if not Path(f"{OUTDIR}/genome").exists():
-#     Path(f"{OUTDIR}/genome").mkdir()
-# if not Path(f"{OUTDIR}/genome/{PREFIX}.fasta").exists():
-#     Path(f"{OUTDIR}/genome/{PREFIX}.fasta").symlink_to(GENOME)
-# GENOME = f"{OUTDIR}/genome/{PREFIX}.fasta"
-
-
-# rule all:
-#     input:
-#         eggnog = f"{OUTDIR}/eggnog/{PREFIX}.emapper.annotations",
-#         busco =  f"{OUTDIR}/busco/{PREFIX}_specific.txt" if BUSCO_LINEAGE else "",
-
-# ----------------------------------------
-
-# пример пайпа 
-# if not SOFTMASKED:
-#     print('poop')
-#     include: "../rules/repeatmasker.smk"
-#     include: "../rules/bedtools.smk"
-#     GENOME = rules.bedtools.output.softmasked_fasta
-
-# include: config["braker_mode"]
-
-# if BUSCO_LINEAGE:
-#     include: "../rules/busco.smk"
-
-# include: "../rules/eggnog.smk"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # TODO
-
-
+rule all:
+    input: "/rules/qiime2.smk"

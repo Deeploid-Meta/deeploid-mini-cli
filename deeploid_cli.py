@@ -39,7 +39,7 @@ def main(settings):
     snakemake --snakefile {settings["working_dir"]}/workflow/snakefile \
               --configfile {settings["config_file"]} \
               --cores {settings["threads"]} \
-              --use-conda """
+              --use-conda qiime2"""
     print(command)
     os.system(command)
     print('snakemake runs...')
