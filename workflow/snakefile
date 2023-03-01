@@ -10,7 +10,7 @@ FORWARD_READS = config["forward_reads"]
 REVERSE_READS = config["reverse_reads"]
 OUTDIR = config["outdir"]
 DATABASE = config["database"]
-THREADS = ["threads"]
+THREADS = config["threads"]
 WORKING_DIR = config["working_dir"]
 
 rule envs:
@@ -20,7 +20,9 @@ rule envs:
       
 envs = rules.envs.params
 
-include: "../rules/qiime2.smk"
+rule all: 
+    input: "rules/qiime2.smk"
+    #include: "qiime2.smk"
 
 ## create symlink to genome to not create index files in genome folder
 # поработать с префиксом и прописать аккуратно переменные в snakefile и .smk
@@ -73,15 +75,4 @@ include: "../rules/qiime2.smk"
 
 # # TODO
 
-rule all:
-    input:
-        script = "../pipelines/qiime2_pipeline.py",
-    shell:
-        """
-            python3 {script} \
-            -1 data/standart_dataset/mock_2_R1.fastq \
-            -2 data/standart_dataset/mock_2_R2.fastq \
-            -db databases/GG/85_otus.fasta \
-            -tx databases/GG/85_otu_taxonomy.txt -t 8 --outdir output
-        """
 

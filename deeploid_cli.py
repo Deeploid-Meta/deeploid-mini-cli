@@ -34,16 +34,9 @@ def main(settings):
     '''
     Runs snakemeake
     '''
-
-    # TODO : доделать эту команду для нашего снейкмейка
-    # if settings["debug"]:
-    #     snake_debug = "-n"
-    # else:
-    #     snake_debug = ""
-
     #Snakemake
     command = f"""
-    snakemake --snakefile {settings["execution_folder"]}/workflow/snakefile \
+    snakemake --snakefile {settings["working_dir"]}/workflow/snakefile \
               --configfile {settings["config_file"]} \
               --cores {settings["threads"]} \
               --use-conda """
@@ -73,13 +66,13 @@ if __name__ == '__main__':
         required=True)
     parser.add_argument(
         '-wd', '--working_dir', help='Path to execution directory',
-        required=False, default="")
+        required=False, default=".")
     parser.add_argument(
         '-db', '--database', help='Path to database (fasta)',
         required=False, default=False)
     parser.add_argument(
         '-nt', '--threads', help='Number of threads (default = 8)',
-        required=False, default=8, type=int)
+        required=False, default=int(8), type=int)
 
 
 
@@ -99,11 +92,11 @@ if __name__ == '__main__':
         'outdir' : args["outdir"],
         'database' : args["database"],
         'threads' : args["threads"],
-        'working_dir': args["working_dir"],
+        'working_dir': execution_folder,
         'config_file' : config_file
     }
 
-    print(settings)
-
+    # print(settings)
+    # print(type(settings["threads"]))
     config_maker(settings, config_file)
     main(settings)
