@@ -8,7 +8,7 @@ WORKING_DIR = config["working_dir"]
 
 rule envs:
     params:
-        qiime2 = "envs/qiime2.yaml"
+        qiime2 = "envs/qiime2_L.yaml",
         dada2 = "envs/dada2.yaml"
       
 envs = rules.envs.params

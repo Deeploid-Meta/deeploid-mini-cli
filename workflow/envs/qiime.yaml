@@ -1,5 +1,5 @@
 channels:
-  - conda
+  - mamba
 dependencies:
   - qiime2-2022.8-py38-linux-conda.yml
 

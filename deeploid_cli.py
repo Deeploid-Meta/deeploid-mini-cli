@@ -37,7 +37,7 @@ def main(settings):
     snakemake --snakefile {settings["working_dir"]}/workflow/snakefile \
               --configfile {settings["config_file"]} \
               --cores {settings["threads"]} \
-              --use-conda {settings["tools"]}"""
+              --use-conda {settings["tool"]}"""
     print(command)
     os.system(command)
     print('snakemake runs...')
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-t', '--tool',
         help='Tool to use in  dada2|qiime2|vsearch|deblur',
-        required=True)
+        required=True, default="qiime2")
     parser.add_argument(
         '-1', '--forward_reads',
         help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
