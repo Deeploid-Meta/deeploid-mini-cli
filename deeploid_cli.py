@@ -37,7 +37,7 @@ def main(settings):
     snakemake --snakefile {settings["working_dir"]}/workflow/snakefile \
               --configfile {settings["config_file"]} \
               --cores {settings["threads"]} \
-              --use-conda {settings["tool"]}"""
+              --use-conda """
     print(command)
     os.system(command)
     print('snakemake runs...')
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '-nt', '--threads', help='Number of threads (default = 8)',
         required=False, default=int(8), type=int)
-
+# TODO: add tx param
     args = vars(parser.parse_args())
 
     execution_folder = args["working_dir"]

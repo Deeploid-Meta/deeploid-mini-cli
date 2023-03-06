@@ -1,21 +1,16 @@
 rule qiime2:
     input:
-        "FORWARD_READS"
-        "REVERSE_READS"
+        fr = FORWARD_READS, 
+        rr = REVERSE_READS,
+        db = DATABASE,
+        tx = TAXANOMY
     output:
-        "OUTDIR"
+        out = OUTDIR
+        
     conda:
         envs.qiime2
-    threads: 
-        "THREADS"
-    params:
-        
     shell:
         """
-            python scripts/qiime2_pipeline.py  -1 {input[0]} 
-            -2 {input[1]} -db {output[0]}  -tx {output[0]}
-            -t {threads[0]}
+            python scripts/qiime2_pipeline.py  -1 {input.fr} 
+            -2 {input.rr} -db {input.db}  -tx {input.tx}
         """
-
-
-

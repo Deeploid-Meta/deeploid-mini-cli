@@ -5,44 +5,15 @@ OUTDIR = config["outdir"]
 DATABASE = config["database"]
 THREADS = ["threads"]
 WORKING_DIR = config["working_dir"]
+TAXANOMY = "/Users/d.voronkina/Desktop/Deeploid/snake/deeploid-mini-cli/databases/GG/85_otu_taxonomy.txt"
+
+rule all:
+    input: OUTDIR
 
 rule envs:
     params:
-        qiime2 = "envs/qiime2_L.yaml",
-        dada2 = "envs/dada2.yaml"
+        qiime2 = "../envs/qiime2_L.yaml"
+        # dada2 = "envs/dada2.yaml"
       
 envs = rules.envs.params
-
-rule qiime2:
-    input:
-        FORWARD_READS, 
-        REVERSE_READS
-    output:
-        OUTDIR,
-        DATABASE
-    conda:
-        envs.qiime2
-    shell:
-        """
-            python scripts/qiime2_pipeline.py  -1 {input[0]} 
-            -2 {input[1]} -db {output[1]}  -tx {output[0]}
-            -t {threads[0]}
-        """
-
-rule dada2:
-    input:
-        FORWARD_READS, 
-        REVERSE_READS
-    output:
-        OUTDIR,
-        DATABASE
-    conda:
-        envs.dada2
-    shell:
-        """
-        Rscript scripts/dada2_pipeline.R -1 {input[0]} -2 {input[1]} -db {output[1]} -o {output[0]}
-        cp {input} {output}
-        """
-
-rule all:
-    input: "/rules/qiime2.smk"
+include: "./rules/qiime2.smk"
