@@ -19,6 +19,7 @@ def config_maker(settings, config_file):
     "database" : "{settings["database"]}"
     "threads" : "{settings["threads"]}"
     "working_dir" : "{settings["working_dir"]}"
+    "taxonomy": "{settings["taxonomy"]}"
     """
 
     if not os.path.exists(os.path.dirname(config_file)):
@@ -72,7 +73,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '-nt', '--threads', help='Number of threads (default = 8)',
         required=False, default=int(8), type=int)
-# TODO: add tx param
+    parser.add_argument(
+        '-tx', '--taxonomy', help='file.txt with taxonomy',
+        required=True)
+
     args = vars(parser.parse_args())
 
     execution_folder = args["working_dir"]
@@ -91,7 +95,8 @@ if __name__ == '__main__':
         'database': args["database"],
         'threads': args["threads"],
         'working_dir': execution_folder,
-        'config_file': config_file
+        'config_file': config_file,
+        'taxonomy': args["taxonomy"]
     }
 
     config_maker(settings, config_file)

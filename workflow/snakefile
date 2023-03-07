@@ -5,7 +5,7 @@ OUTDIR = config["outdir"]
 DATABASE = config["database"]
 THREADS = ["threads"]
 WORKING_DIR = config["working_dir"]
-TAXANOMY = "/Users/d.voronkina/Desktop/Deeploid/snake/deeploid-mini-cli/databases/GG/85_otu_taxonomy.txt"
+TAXANOMY = config["taxonomy"]
 
 rule all:
     input: OUTDIR
