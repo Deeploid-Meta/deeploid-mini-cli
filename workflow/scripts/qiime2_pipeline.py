@@ -9,39 +9,7 @@ from qiime2.sdk import PluginManager
 import qiime2
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description='qiime2 pipeline')
-    parser.add_argument(
-        '-1', '--forward_reads',
-        help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
-        required=True)
-    parser.add_argument(
-        '-2', '--reverse_reads',
-        help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
-        default=False)
-    parser.add_argument(
-        '-o', '--outdir', help='Output folder (default = reads folder)',
-        required=False, default=False)
-    parser.add_argument(
-        '-p', '--prefix',
-        help='Output file prefix (default = prefix of original file)',
-        required=False, default=False)
-    parser.add_argument(
-        '-db', '--database', help='Path to database (fasta)',
-        required=False, default=False)
-    parser.add_argument(
-        '-tx', '--taxonomy', help='Path to database taxonomy (txt)',
-        required=False, default=False)
-    parser.add_argument(
-        '-t', '--threads', help='Number of threads (default = 8)',
-        required=False, default=8, type=int)
-    parser.add_argument(
-        '--trunc_len', help='dada2 denoise_single - trunc length',
-        required=False, default=150, type=int)
-    parser.add_argument(
-        '--trim_left', help='dada2 denoise_single - trim left',
-        required=False, default=30, type=int)
-    return parser
+
 
 
 def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
@@ -129,10 +97,9 @@ def train_classifier(database_path: Path, taxonomy_path: Path,
 
 
 def main():
-    parser = build_parser()
-    args = vars(parser.parse_args())
 
     # Create output directory
+    print(args)
     output = Path(args['outdir'])
     output.mkdir(exist_ok=True)
 
@@ -290,4 +257,41 @@ def main():
 
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(
+        description='qiime2 pipeline')
+    
+    parser.add_argument(
+        '-1', '--forward_reads',
+        help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
+        required=True)
+    parser.add_argument(
+        '-2', '--reverse_reads',
+        help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
+        default=False)
+    parser.add_argument(
+        '-o', '--outdir', help='Output folder (default = reads folder)',
+        required=False, default=False)
+    parser.add_argument(
+        '-p', '--prefix',
+        help='Output file prefix (default = prefix of original file)',
+        required=False, default=False)
+    parser.add_argument(
+        '-db', '--database', help='Path to database (fasta)',
+        required=False, default=False)
+    parser.add_argument(
+        '-tx', '--taxonomy', help='Path to database taxonomy (txt)',
+        required=False, default=False)
+    parser.add_argument(
+        '-t', '--threads', help='Number of threads (default = 8)',
+        required=False, default=8, type=int)
+    parser.add_argument(
+        '--trunc_len', help='dada2 denoise_single - trunc length',
+        required=False, default=150, type=int)
+    parser.add_argument(
+        '--trim_left', help='dada2 denoise_single - trim left',
+        required=False, default=30, type=int)
+
+    args = vars(parser.parse_args())
+    
     main()

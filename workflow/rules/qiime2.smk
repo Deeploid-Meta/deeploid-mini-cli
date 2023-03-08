@@ -7,11 +7,12 @@ rule qiime2:
     output:
         out = OUTDIR
     params:
-        t = THREADS        
+        t = THREADS,
+        outdir = directory(OUTDIR)
     conda:
         envs.qiime2
     shell:
         """
-            python scripts/qiime2_pipeline.py  -1 {input.fr} 
-            -2 {input.rr} -db {input.db}  -tx {input.tx} -t {params.t} --outdir {output.out}
+            python workflow/scripts/qiime2_pipeline.py  -1 {input.fr} 
+            -2 {input.rr} -db {input.db} -tx {input.tx} -t {params.t} -o {output.out}
         """

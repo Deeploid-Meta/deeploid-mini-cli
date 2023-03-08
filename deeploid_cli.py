@@ -63,7 +63,7 @@ if __name__ == '__main__':
         required=True)
     parser.add_argument(
         '-o', '--outdir', help='Output folder (default = reads folder)',
-        required=True)
+        required=False, default="output")
     parser.add_argument(
         '-wd', '--working_dir', help='Path to execution directory',
         required=False, default=".")
