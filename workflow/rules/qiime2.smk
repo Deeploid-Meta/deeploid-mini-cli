@@ -13,6 +13,6 @@ rule qiime2:
         envs.qiime2
     shell:
         """
-            python workflow/scripts/qiime2_pipeline.py  -1 {input.fr} 
+            python workflow/scripts/qiime2_pipeline.py  -1 {input.fr} \
             -2 {input.rr} -db {input.db} -tx {input.tx} -t {params.t} -o {output.out}
         """
