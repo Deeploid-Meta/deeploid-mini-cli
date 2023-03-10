@@ -1,8 +1,12 @@
-# Full instruction V1
+# работа без багов V1 (MVP для qiime2)
+
+При запуске qiime2_2020_8_py36.yaml и скрипта ниже **ВСЕ РАБОТАЕТ** папка `path/output` создается и в ней появляются `ASV.csv, taxonomy.tsv и папка qiime2_artifacts`
 
 ```
-python3 deeploid_cli.py --tool qiime2 -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -o /path/to/outdir
+python3 deeploid_cli.py --tool qiime2 -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus.fasta -tx databases/GG/85_otu_taxonomy.txt -o path/output
 ```
+
+# Full instruction V1
 
 ## Install, set and run
 
