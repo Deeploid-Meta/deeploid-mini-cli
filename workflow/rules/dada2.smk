@@ -11,7 +11,7 @@ rule dada2:
         envs.dada2
     shell:
         """
-        Rscript scripts/dada2_pipeline.R -1 {input.fr} -2 {input.rr} -db {input.db} -o {params.outdir}
+        Rscript workflow/scripts/dada2_pipeline.R -1 {input.fr} -2 {input.rr} -db {input.db} -o {params.outdir}
         """
 
 # Дашин вариант

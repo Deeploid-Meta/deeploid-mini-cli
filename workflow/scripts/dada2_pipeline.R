@@ -1,4 +1,8 @@
 # !/usr/bin/env Rscript
+options(repos = c(CRAN = "https://cran.r-project.org"))
+install.packages("argparse")
+library(argparse)
+
 suppressPackageStartupMessages(library("argparse"))
 library(dada2); packageVersion("dada2")
 # create parser object
@@ -17,16 +21,16 @@ args <- parser$parse_args()
 
 path <- args$path
 
-nF1 <- system.file("extdata", args$forward, package="dada2")
-fnR1 <- system.file("extdata", args$forward, package="dada2")
+fnF1 <- system.file("extdata", args$forward, package="dada2")
+fnR1 <- system.file("extdata", args$reverse, package="dada2")
 filtF1 <- tempfile(fileext=".fastq.gz")
 filtR1 <- tempfile(fileext=".fastq.gz")
 
 
 
-out <- filterAndTrim(fwd=fnF1, filt=filtF1, rev=fnR1, filt.rev=filtR1,
-                  trimLeft=10, truncLen=c(240, 200), 
-                  maxN=0, maxEE=2,
+out <- filterAndTrim(fwd=fnF1, filt=filtF1, rev=fnR1, filt.rev=filtR1, /
+                  trimLeft=10, truncLen=c(240, 200), /
+                  maxN=0, maxEE=2, /
                   compress=TRUE, verbose=TRUE)
 
 derepF1 <- derepFastq(filtF1, verbose=TRUE)
