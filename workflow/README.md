@@ -41,6 +41,16 @@ In contrast to the full installation, which depends on some Unix (Linux/MacOS) o
 
 # Запуск скрипта dada2
 
+#### Версия от Марго со снейком и ее пайплайном
+
+```
+python3 deeploid_cli.py --tool dada2  -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/silva_nr99_v138.1_train_set.fa.gz -o path/output
+```
+
+```bash
+Rscript dada2_OTU_full.R -p <path/to/folder/with/fastq> -1 '*_R1.fastq.gz' -2 '*_R2.fastq.gz' -o <path/to/output/folder>
+```
+
 #### Версия от Никиты со снейком
 
 ```

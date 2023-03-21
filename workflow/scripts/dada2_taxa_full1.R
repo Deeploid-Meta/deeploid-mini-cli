@@ -1,17 +1,20 @@
 #!/usr/bin/env Rscript
-options(repos = c(CRAN = "https://cran.r-project.org"))
-install.packages("argparse")
-library(argparse)
-
 suppressPackageStartupMessages(library("argparse"))
 library(dada2); packageVersion("dada2")
+
+# argparse uploading only with mirror
+if (!require(argparse)) {
+  install.packages("argparse", repos = "https://mirror.truenetwork.ru/CRAN/")
+  library(argparse)
+}
+
 # create parser object
 parser <- ArgumentParser()
 
 parser$add_argument("-t", "--type", type = "character", default = "taxa",
     help = "Enter type for start: otu - create OTU, taxa - create taxonomy.")
 parser$add_argument("-p", "--path", type = "character", default = "otu",
-    help = "Enter path to reads")
+    help = "Enter path to  reads")
 parser$add_argument("-1", "--forward", type = "character",
     help = "Enter forward reads pattern example: *_R1_001.fastq")
 parser$add_argument("-2", "--reverse", type = "character",
@@ -38,8 +41,6 @@ filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq"))
 names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 
-
-
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=TRUE)
@@ -62,7 +63,7 @@ table(nchar(getSequences(seqtab)))
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 
 getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+track <- cbind(out, getN(dadaFs), getN(mergers), rowSums(seqtab), rowSums(seqtab.nochim))
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 
