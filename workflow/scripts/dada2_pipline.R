@@ -10,7 +10,7 @@ parser$add_argument("-2", "--reverse", type = "character",
     help = "Enter reverse reads pattern example: *_R2_001.fastq")
 parser$add_argument("-db", "--database", type = "character",
     help = "Enter path to database in fasta format")
-parser$add_argument("-o", "--output", type = "character", default = "/outupt",
+parser$add_argument("-o", "--output", type = "character", default = "/output",
     help = "Enter path to output result")
 
 args <- parser$parse_args()
