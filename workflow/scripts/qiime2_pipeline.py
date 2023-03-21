@@ -8,10 +8,6 @@ from qiime2.sdk import PluginManager
 
 import qiime2
 
-
-
-
-
 def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
                                     reverse_raw_reads: Path,
                                     working_dir: Path) -> str:

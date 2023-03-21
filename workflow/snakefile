@@ -9,14 +9,17 @@ TAXANOMY = config["taxonomy"]
 
 rule all:
     input: 
-        OUTDIR 
+        expand("{outdir}", outdir=OUTDIR)
 
 rule envs:
     params:
         qiime2 = "../envs/qiime2_2020_8_py36.yaml",
+        deblur = "../envs/deblur.yaml",
         dada2 = "../envs/dada2.yaml"
+        
 
 envs = rules.envs.params
 
 include: "./rules/qiime2.smk"
-include: "./rules/dada2.smk"
+include: "./rules/deblur.smk"
+# include: "./rules/dada2.smk"

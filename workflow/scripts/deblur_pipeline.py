@@ -41,9 +41,7 @@ def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
 
 
 def main():
-    parser = build_parser()
-    args = vars(parser.parse_args())
-
+    print(args)
     # Create output directory
     output = Path(args['outdir'])
     output.mkdir(exist_ok=True)
