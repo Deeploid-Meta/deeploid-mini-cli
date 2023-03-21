@@ -8,48 +8,6 @@ from qiime2.sdk import PluginManager
 
 import qiime2
 
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description='qiime2 pipeline')
-    parser.add_argument(
-        '-1', '--forward_reads',
-        help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
-        required=True)
-    parser.add_argument(
-        '-2', '--reverse_reads',
-        help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
-        default=False)
-    parser.add_argument(
-        '-o', '--outdir', help='Output folder (default = reads folder)',
-        required=False, default=False)
-    parser.add_argument(
-        '-p', '--prefix',
-        help='Output file prefix (default = prefix of original file)',
-        required=False, default=False)
-    parser.add_argument(
-        '-db', '--database', help='Path to database (fasta/qza)',
-        required=False, default=False)
-    parser.add_argument(
-        '-t', '--threads', help='Number of threads (default = 8)',
-        required=False, default=16, type=int)
-    parser.add_argument(
-        '--trunc_len', help='dada2 denoise_single - trunc length',
-        required=False, default=150, type=int)
-    parser.add_argument(
-        '--trim_left', help='dada2 denoise_single - trim left',
-        required=False, default=30, type=int)
-    parser.add_argument(
-        '--trim_length', help='deblur denoise-16S - trim_length',
-        required=False, default=150, type=int)
-    parser.add_argument(
-        '--left_trim_len', help='deblur denoise-16S - left_trim_len',
-        required=False, default=30, type=int)
-    parser.add_argument(
-        '--sample_stats', help='If true, gather stats per sample.',
-        required=False, default=True, type=bool)
-    return parser
-
-
 def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
                                     reverse_raw_reads: Path,
                                     working_dir: Path) -> str:
@@ -253,4 +211,47 @@ def main():
 
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(
+        description='deblur pipeline')
+    
+    parser.add_argument(
+        '-1', '--forward_reads',
+        help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
+        required=True)
+    parser.add_argument(
+        '-2', '--reverse_reads',
+        help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
+        default=False)
+    parser.add_argument(
+        '-o', '--outdir', help='Output folder (default = reads folder)',
+        required=False, default=False)
+    parser.add_argument(
+        '-p', '--prefix',
+        help='Output file prefix (default = prefix of original file)',
+        required=False, default=False)
+    parser.add_argument(
+        '-db', '--database', help='Path to database (fasta/qza)',
+        required=False, default=False)
+    parser.add_argument(
+        '-t', '--threads', help='Number of threads (default = 8)',
+        required=False, default=16, type=int)
+    parser.add_argument(
+        '--trunc_len', help='dada2 denoise_single - trunc length',
+        required=False, default=150, type=int)
+    parser.add_argument(
+        '--trim_left', help='dada2 denoise_single - trim left',
+        required=False, default=30, type=int)
+    parser.add_argument(
+        '--trim_length', help='deblur denoise-16S - trim_length',
+        required=False, default=150, type=int)
+    parser.add_argument(
+        '--left_trim_len', help='deblur denoise-16S - left_trim_len',
+        required=False, default=30, type=int)
+    parser.add_argument(
+        '--sample_stats', help='If true, gather stats per sample.',
+        required=False, default=True, type=bool)
+    
+    args = vars(parser.parse_args())
+    
     main()
