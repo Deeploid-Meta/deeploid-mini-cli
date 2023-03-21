@@ -75,7 +75,7 @@ if __name__ == '__main__':
         required=False, default=int(8), type=int)
     parser.add_argument(
         '-tx', '--taxonomy', help='file.txt with taxonomy',
-        required=True)
+        required=False)
 
     args = vars(parser.parse_args())
 

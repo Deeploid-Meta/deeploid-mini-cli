@@ -14,7 +14,7 @@ rule all:
 rule envs:
     params:
         qiime2 = "../envs/qiime2_2020_8_py36.yaml",
-        dada2 = "envs/dada2.yaml"
+        dada2 = "../envs/dada2.yaml"
 
 envs = rules.envs.params
 
