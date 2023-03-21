@@ -28,9 +28,9 @@ filtR1 <- tempfile(fileext=".fastq.gz")
 
 
 
-out <- filterAndTrim(fwd=fnF1, filt=filtF1, rev=fnR1, filt.rev=filtR1, /
-                  trimLeft=10, truncLen=c(240, 200), /
-                  maxN=0, maxEE=2, /
+out <- filterAndTrim(fwd=fnF1, filt=filtF1, rev=fnR1, filt.rev=filtR1,
+                  trimLeft=10, truncLen=c(240, 200),
+                  maxN=0, maxEE=2,
                   compress=TRUE, verbose=TRUE)
 
 derepF1 <- derepFastq(filtF1, verbose=TRUE)

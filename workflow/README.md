@@ -56,7 +56,7 @@ Rscript dada2_OTU_full.R -p <path/to/folder/with/fastq> -1 '*_R1.fastq.gz' -2 '*
 `pipeline/dada2_OTU_full.R` - скрипт для запуска дады до этапа OTU ТОЛЬКО с форвард и реверс ридами.
 Пример запуска:
 ```bash
-Rscript dada2_OTU_full.R -p <path/to/folder/with/fastq> -1 '*_R1.fastq.gz' -2 '*_R2.fastq.gz' -o <path/to/output/folder>
+python3 deeploid_cli.py --tool dada2 -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus.fasta -o path/output
 ```
 `pipeline/dada2_taxa_full.R` - скрипт для запуска дады до этапа таксономии ТОЛЬКО с форвард и реверс ридами.
 Пример запуска:
