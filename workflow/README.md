@@ -73,3 +73,12 @@ python3 deeploid_cli.py --tool dada2 -1 data/standart_dataset/mock_2_R1.fastq -2
 ```bash
 Rscript dada2_taxa_full.R -p <path/to/folder/with/fastq> -1 '*_R1.fastq.gz' -2 '*_R2.fastq.gz' -o <path/to/output/folder> -db <path/to/folder/database_training_set>
 ```
+
+# Запуск скрипта deblur
+
+#### Версия от Марго со снейком и ее пайплайном
+
+```bash
+python3 deeploid_cli.py --tool deblur -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq /
+-db databases/GG/85_otus.fasta -tx databases/GG/85_otu_taxonomy.txt -o path/output
+```
