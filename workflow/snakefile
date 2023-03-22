@@ -8,8 +8,8 @@ WORKING_DIR = config["working_dir"]
 TAXANOMY = config["taxonomy"]
 
 rule all:
-    input: 
-        expand("{outdir}", outdir=OUTDIR)
+    input:
+        expand("{outdir}/{tool}/taxonomy.tsv", outdir=OUTDIR, tool=TOOL)
 
 rule envs:
     params:
@@ -17,9 +17,8 @@ rule envs:
         deblur = "../envs/deblur.yaml",
         dada2 = "../envs/dada2.yaml"
         
-
 envs = rules.envs.params
 
-include: "./rules/qiime2.smk"
-include: "./rules/deblur.smk"
-# include: "./rules/dada2.smk"
+include: "rules/qiime2.smk"
+include: "rules/deblur.smk"
+include: "rules/dada2.smk"

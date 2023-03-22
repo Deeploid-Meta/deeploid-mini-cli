@@ -5,14 +5,14 @@ rule deblur:
         db = DATABASE,
         tx = TAXANOMY
     output:
-        out = directory(OUTDIR) + '/TOOL'
+        expand("{outdir}/deblur/taxonomy.tsv", outdir=OUTDIR)
     params:
         t = THREADS,
         outdir = directory(OUTDIR)
     conda:
-        envs.deblur
+        envs.qiime2
     shell:
         """
             python workflow/scripts/deblur_pipeline.py  -1 {input.fr} \
-            -2 {input.rr} -db {input.db} -tx {input.tx} -t {params.t} -o {params.outdir}
+            -2 {input.rr} -db {input.db} -t {params.t} -o {params.outdir}
         """

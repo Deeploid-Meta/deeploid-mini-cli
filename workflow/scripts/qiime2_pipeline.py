@@ -96,7 +96,7 @@ def main():
 
     # Create output directory
     print(args)
-    output = Path(args['outdir'])
+    output = Path(args['outdir'] + '/qiime2')
     output.mkdir(exist_ok=True)
 
     # Create qiime2 artifacts directory

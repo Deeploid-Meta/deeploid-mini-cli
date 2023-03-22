@@ -3,10 +3,10 @@ rule dada2:
         fr = FORWARD_READS, 
         rr = REVERSE_READS,
         db = DATABASE
-    params:
-        outdir = directory(OUTDIR) + '/TOOL'
     output:
-        out = directory(OUTDIR)
+        out = directory(OUTDIR) + '/dada2'
+    params:
+        outdir = directory(OUTDIR)
     conda:
         envs.dada2
     shell:

@@ -43,7 +43,7 @@ def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
 def main():
     print(args)
     # Create output directory
-    output = Path(args['outdir'])
+    output = Path(args['outdir'] + '/deblur')
     output.mkdir(exist_ok=True)
 
     # Create qiime2 artifacts directory
@@ -197,11 +197,12 @@ def main():
         output / 'taxonomy.tsv', index=False, sep='\t')
 
     # Use taxa plugin for visualization taxonomy - barplot
-    taxa = plugin_manager.plugins['taxa']
-    barplot = taxa.actions['barplot']
-    result_barplot = barplot(table=result.table,
-                             taxonomy=result_taxonomy.classification)
-    result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
+    # doesnt works on python3.6
+    # taxa = plugin_manager.plugins['taxa']
+    # barplot = taxa.actions['barplot']
+    # result_barplot = barplot(table=result.table,
+    #                          taxonomy=result_taxonomy.classification)
+    # result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
 
     # Remove temporary files
     shutil.rmtree(working_dir)
@@ -233,7 +234,7 @@ if __name__ == "__main__":
         required=False, default=False)
     parser.add_argument(
         '-t', '--threads', help='Number of threads (default = 8)',
-        required=False, default=16, type=int)
+        required=False, default=8, type=int)
     parser.add_argument(
         '--trunc_len', help='dada2 denoise_single - trunc length',
         required=False, default=150, type=int)

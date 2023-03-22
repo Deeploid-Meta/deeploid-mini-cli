@@ -5,7 +5,7 @@ rule qiime2:
         db = DATABASE,
         tx = TAXANOMY
     output:
-        out = directory(OUTDIR) + '/TOOL'
+        expand("{outdir}/qiime2/taxonomy.tsv", outdir=OUTDIR)
     params:
         t = THREADS,
         outdir = directory(OUTDIR)
