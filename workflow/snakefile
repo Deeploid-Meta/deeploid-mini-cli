@@ -15,10 +15,12 @@ rule envs:
     params:
         qiime2 = "../envs/qiime2.yaml",
         deblur = "../envs/deblur.yaml",
-        dada2 = "../envs/dada2.yaml"
+        dada2 = "../envs/dada2.yaml",
+        vsearch = "../envs/vsearch.yaml"
         
 envs = rules.envs.params
 
 include: "rules/qiime2.smk"
 include: "rules/deblur.smk"
 include: "rules/dada2.smk"
+include: "rules/vsearch.smk"

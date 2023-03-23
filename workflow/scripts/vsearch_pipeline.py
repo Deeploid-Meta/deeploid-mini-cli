@@ -1,17 +1,20 @@
 import gzip
 import shutil
+import argparse
 from pathlib import Path
+
+import os
+
 import pandas as pd
 import qiime2.plugins as plugins
 from qiime2.sdk import PluginManager
-import qiime2
 from qiime2 import Artifact
 from urllib import request
 from qiime2 import Metadata
 import qiime2.plugins.metadata.actions as metadata_actions
 import qiime2.plugins.feature_classifier.actions as feature_classifier_actions
-import os
-import argparse
+
+import qiime2
 
 plugin_manager = PluginManager(True)
 vsearch = plugin_manager.plugins["vsearch"]
