@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+path/
+.snakemake
+databases/silva_nr99_v138.1_train_set.fa.gz
