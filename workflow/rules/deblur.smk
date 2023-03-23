@@ -10,7 +10,7 @@ rule deblur:
         t = THREADS,
         outdir = directory(OUTDIR)
     conda:
-        envs.qiime2
+        envs.deblur
     shell:
         """
             python workflow/scripts/deblur_pipeline.py  -1 {input.fr} \

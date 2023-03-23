@@ -197,12 +197,11 @@ def main():
         output / 'taxonomy.tsv', index=False, sep='\t')
 
     # Use taxa plugin for visualization taxonomy - barplot
-    # doesnt works on python3.6
-    # taxa = plugin_manager.plugins['taxa']
-    # barplot = taxa.actions['barplot']
-    # result_barplot = barplot(table=result.table,
-    #                          taxonomy=result_taxonomy.classification)
-    # result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
+    taxa = plugin_manager.plugins['taxa']
+    barplot = taxa.actions['barplot']
+    result_barplot = barplot(table=result.table,
+                             taxonomy=result_taxonomy.classification)
+    result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
 
     # Remove temporary files
     shutil.rmtree(working_dir)

@@ -237,21 +237,13 @@ def main():
         taxanomy_metadata, on='feature_id', how='left')
     taxonomy.drop('feature_id', axis=1).to_csv(
         output / 'taxonomy.tsv', index=False, sep='\t')
-    
-    #TODO fix this part
-            # ```Traceback (most recent call last):
-            #   File "workflow/scripts/qiime2_pipeline.py", line 297, in <module>
-            #     main()
-            #   File "workflow/scripts/qiime2_pipeline.py", line 249, in main
-            #     taxonomy=result_taxonomy.classification)
-            # TypeError: barplot() missing 1 required positional argument: 'metadata'```
 
     # Use taxa plugin for visualization taxonomy - barplot
-    # taxa = plugin_manager.plugins['taxa']
-    # barplot = taxa.actions['barplot']
-    # result_barplot = barplot(table=result.table,
-    #                          taxonomy=result_taxonomy.classification)
-    # result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
+    taxa = plugin_manager.plugins['taxa']
+    barplot = taxa.actions['barplot']
+    result_barplot = barplot(table=result.table,
+                             taxonomy=result_taxonomy.classification)
+    result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
 
     print('Done')
 
