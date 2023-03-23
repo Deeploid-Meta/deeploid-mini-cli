@@ -1,12 +1,12 @@
-#!/usr/bin/env Rscript
-suppressPackageStartupMessages(library("argparse"))
-library(dada2); packageVersion("dada2")
-
 # argparse uploading only with mirror
 if (!require(argparse)) {
   install.packages("argparse", repos = "https://mirror.truenetwork.ru/CRAN/")
   library(argparse)
 }
+
+#!/usr/bin/env Rscript
+suppressPackageStartupMessages(library("argparse"))
+library(dada2); packageVersion("dada2")
 
 # create parser object
 parser <- ArgumentParser()
