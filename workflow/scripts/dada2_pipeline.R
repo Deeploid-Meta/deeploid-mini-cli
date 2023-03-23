@@ -1,60 +1,70 @@
-# !/usr/bin/env Rscript
-options(repos = c(CRAN = "https://cran.r-project.org"))
-install.packages("argparse")
-library(argparse)
-
+#!/usr/bin/env Rscript
 suppressPackageStartupMessages(library("argparse"))
 library(dada2); packageVersion("dada2")
+
+# argparse uploading only with mirror
+if (!require(argparse)) {
+  install.packages("argparse", repos = "https://mirror.truenetwork.ru/CRAN/")
+  library(argparse)
+}
+
 # create parser object
 parser <- ArgumentParser()
 
+parser$add_argument("-t", "--type", type = "character", default = "taxa",
+    help = "Enter type for start: otu - create OTU, taxa - create taxonomy.")
+parser$add_argument("-p", "--path", type = "character", default = "data/standart_dataset",
+    help = "Enter path to  reads")
 parser$add_argument("-1", "--forward", type = "character",
     help = "Enter forward reads pattern example: *_R1_001.fastq")
 parser$add_argument("-2", "--reverse", type = "character",
     help = "Enter reverse reads pattern example: *_R2_001.fastq")
 parser$add_argument("-db", "--database", type = "character",
     help = "Enter path to database in fasta format")
-parser$add_argument("-o", "--output", type = "character", default = "/output",
+parser$add_argument("-o", "--output", type = "character", default = "/outupt",
     help = "Enter path to output result")
 
 args <- parser$parse_args()
 
 path <- args$path
+output <- args$output
 
-fnF1 <- system.file("extdata", args$forward, package="dada2")
-fnR1 <- system.file("extdata", args$reverse, package="dada2")
-filtF1 <- tempfile(fileext=".fastq.gz")
-filtR1 <- tempfile(fileext=".fastq.gz")
+fnFs <- sort(list.files(path,
+                        pattern = args$forward,
+                        full.names = TRUE))
+fnRs <- sort(list.files(path,
+                        pattern = args$reverse,
+                        full.names = TRUE))
+sample.names <- sapply(strsplit(basename(fnFs), "\\."), `[`, 1)
+
+filtFs <- file.path(output, "dada2/filtered", paste0(sample.names, "_F_filt.fastq"))
+filtRs <- file.path(output, "dada2/filtered", paste0(sample.names, "_R_filt.fastq"))
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
+              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
+              compress=TRUE, multithread=TRUE)
+
+errF <- learnErrors(filtFs, multithread=TRUE)
+errR <- learnErrors(filtRs, multithread=TRUE)
 
 
-
-out <- filterAndTrim(fwd=fnF1, filt=filtF1, rev=fnR1, filt.rev=filtR1,
-                  trimLeft=10, truncLen=c(240, 200),
-                  maxN=0, maxEE=2,
-                  compress=TRUE, verbose=TRUE)
-
-derepF1 <- derepFastq(filtF1, verbose=TRUE)
-derepR1 <- derepFastq(filtR1, verbose=TRUE)
-
-errF <- learnErrors(derepF1, multithread=FALSE) 
-errR <- learnErrors(derepR1, multithread=FALSE)
+dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
 
 
-dadaF1 <- dada(derepF1, err=errF, multithread=FALSE)
-dadaR1 <- dada(derepR1, err=errR, multithread=FALSE)
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
 
-
-merger1 <- mergePairs(dadaF1, derepF1, dadaR1, derepR1, verbose=TRUE)
-merger1.nochim <- removeBimeraDenovo(merger1, multithread=FALSE, verbose=TRUE)
-
-seqtab <- makeSequenceTable(list(merger1))
-write.table(seqtab, file=paste(args$output, "OTU.tsv", sep = "/"), quote=FALSE, sep='\t', col.names = NA)
+seqtab <- makeSequenceTable(dadaFs)
+write.table(seqtab, file=paste(args$output, "dada2", "OTU.tsv", sep = "/"), quote=FALSE, sep='\t', col.names = NA)
 
 # nochim
-seqtab.nochim <- removeBimeraDenovo(seqtab, verbose=TRUE)
+table(nchar(getSequences(seqtab)))
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 
 getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+track <- cbind(out, getN(dadaFs), getN(mergers), rowSums(seqtab), rowSums(seqtab.nochim))
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 
@@ -62,4 +72,4 @@ taxa <- assignTaxonomy(seqtab.nochim, args$database, multithread=TRUE)
 taxa.print <- taxa
 rownames(taxa.print) <- NULL
 head(taxa.print)
-write.table(taxa, file=paste(args$output, "TAXA.tsv", sep = "/"), quote=FALSE, sep='\t', col.names = NA)
+write.table(taxa, file=paste(output, "dada2", "taxonomy.tsv", sep = "/"), quote=FALSE, sep='\t', col.names = NA)
