@@ -1,23 +1,17 @@
 rule vsearch:
     input:
-        db = DATABASE,
-        tx = TAXANOMY
+        fr = FORWARD_READS, 
+        rr = REVERSE_READS,
+        db = DATABASE
     output:
         expand("{outdir}/vsearch/taxonomy.tsv", outdir=OUTDIR)
     params:
         t = THREADS,
-        outdir = directory(OUTDIR),
-        fr = FORWARD_READS, 
-        rr = REVERSE_READS
+        outdir = directory(OUTDIR)
+
     conda:
         envs.vsearch
     shell:
         """
-            python workflow/scripts/vsearch_pipeline.py  -r data/standart_dataset/ \
-            -o {params.outdir} -t True
+            python workflow/scripts/vsearch_pipeline.py  -1 {input.fr} -2 {input.rr}  -o {params.outdir}  -db {input.db}
         """
-
-# python vsearch_pipeline.py -r raw_reads -o output_folder_pe_trimmed -se False -t True
-
-# python workflow/scripts/vsearch_pipeline.py  -1 {input.fr} \
-#            -2 {input.rr} -db {input.db} -tx {input.tx} -t {params.t} -o {params.outdir}

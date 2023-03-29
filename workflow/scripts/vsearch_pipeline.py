@@ -91,8 +91,9 @@ def prepare_data_pe(forward_raw_reads: Path,
 
 def prepare_data_se(forward_raw_reads,
                     working_dir):
-    ''' Prepare sindle ended files for qiime pipeline (should be gz files with _R1_001.fastq.gz
-        and _R2_001.fastq.gz in filename)
+    ''' Prepare sindle ended files for qiime pipeline
+    (should be gz files with _R1_001.fastq.gz
+    and _R2_001.fastq.gz in filename)
     '''
     prepared_for_qiime2_reads_dir = working_dir / Path('prepared_data')
     prepared_for_qiime2_reads_dir.mkdir(exist_ok=True)
@@ -156,12 +157,12 @@ def merging(paired_end_sequences, vsearch_artifacts):
     Merges raw sequences into one file for vsearch usage
     """
 
-    join_pairs = vsearch.actions["join_pairs"]
+    join_pairs = vsearch.actions["merge_pairs"]
     result = join_pairs(demultiplexed_seqs=paired_end_sequences)
 
     print(result)
 
-    joined_sequences = result.joined_sequences
+    joined_sequences = result.merged_sequences
     joined_sequences.save(str(vsearch_artifacts / 'joined-sequences.qza'))
 
     return joined_sequences
@@ -242,12 +243,14 @@ def otu_clustering(dereplicated_table, dereplicated_sequences, vsearch_artifacts
 
     return clustered_table, clustered_sequences, df_seqs_freqs
 
-def taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifacts, df_seqs_freqs):
+def taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifacts, df_seqs_freqs, classifier_qza):
     """
     Does taxonomy classification, saves visualizations for taxonomy
     """
 
-    fn = 'gg-13-8-99-515-806-nb-classifier.qza'
+    fn = classifier_qza
+    # 'databases/GG/85_otus_classifier.qza'
+    # fn = 'gg-13-8-99-515-806-nb-classifier.qza'
 
     try :
         gg_13_8_99_515_806_nb_classifier = Artifact.load(fn)
@@ -311,7 +314,7 @@ def main():
     reverse_raw_reads = Path(args['reverse_reads'])
 
     # Create output directory
-    output_dir = Path(args['outdir'])
+    output_dir = Path(args['outdir'] + '/vsearch')
     output_dir.mkdir(exist_ok=True)
 
     # Create working directory
@@ -331,15 +334,16 @@ def main():
     clustered_table, clustered_sequences, df_seqs_freqs = otu_clustering(dereplicated_table, dereplicated_sequences, output_dir, sample_name)
 
     # taxonomy classification
-    taxonomy = taxonomy_classification(clustered_table, clustered_sequences, output_dir, df_seqs_freqs)
+    classifier_qza = Path(args['database'])
+    taxonomy = taxonomy_classification(clustered_table, clustered_sequences, output_dir, df_seqs_freqs, classifier_qza)
 
     # delete dirs:
-    to_dedlete = [i for i in os.listdir(output_dir) if not i.endswith(('.csv', '.tsv', '.qza', '.qzv'))]
-    for k in to_delete:
-        print(f'{str(output_dir) + "/" + k} will be removed')
-        #os.system(f'rm -r {str(output_dir) + "/" + k}')
-        path_temp = output_dir / Path(k)
-        shutil.rmtree(path_temp)
+    # to_delete = [i for i in os.listdir(output_dir) if not i.endswith(('.csv', '.tsv', '.qza', '.qzv'))]
+    # for k in to_delete:
+    #     print(f'{str(output_dir) + "/" + k} will be removed')
+    #     #os.system(f'rm -r {str(output_dir) + "/" + k}')
+    #     path_temp = output_dir / Path(k)
+    #     shutil.rmtree(path_temp)
 
 if __name__ == "__main__":
     main()
