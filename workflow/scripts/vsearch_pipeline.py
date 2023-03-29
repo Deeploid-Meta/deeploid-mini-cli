@@ -138,7 +138,7 @@ def trimming(is_single_ended, raw_reads_path, working_dir):
     """Trims raw data"""
     reads_names = os.listdir(raw_reads_path)
     reads_names = [x for x in reads_names if '.fastq' in x or '.fq' in x]
-    sample_names  = list(set([x.split('_')[0] for x in reads_names]))
+    sample_names = list(set([x.split('_')[0] for x in reads_names]))
 
     new_path = working_dir / Path("raw_data_dir_trimmed")
     new_path.mkdir(exist_ok=True)
@@ -173,7 +173,7 @@ def dereplication(joined_sequences, vsearch_artifacts):
     """
 
     dereplicate_sequences = vsearch.actions["dereplicate_sequences"]
-    result = dereplicate_sequences(sequences = joined_sequences)
+    result = dereplicate_sequences(sequences=joined_sequences)
 
     print(result)
 
@@ -243,7 +243,9 @@ def otu_clustering(dereplicated_table, dereplicated_sequences, vsearch_artifacts
 
     return clustered_table, clustered_sequences, df_seqs_freqs
 
-def taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifacts, df_seqs_freqs, classifier_qza):
+
+def taxonomy_classification(clustered_table, clustered_sequences,
+                            vsearch_artifacts, df_seqs_freqs, classifier_qza):
     """
     Does taxonomy classification, saves visualizations for taxonomy
     """
@@ -252,7 +254,7 @@ def taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifa
     # 'databases/GG/85_otus_classifier.qza'
     # fn = 'gg-13-8-99-515-806-nb-classifier.qza'
 
-    try :
+    try:
         gg_13_8_99_515_806_nb_classifier = Artifact.load(fn)
     except:
         url = 'https://docs.qiime2.org/jupyterbooks/cancer-microbiome-intervention-tutorial/data/030-tutorial-downstream/020-taxonomy/gg-13-8-99-515-806-nb-classifier.qza'
@@ -277,7 +279,6 @@ def taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifa
     tab_taxonomy = tabulate(taxonomy.view(qiime2.Metadata))
     tab_taxonomy.visualization.export_data(vsearch_artifacts / 'taxonomy')
 
-
     # Use taxa plugin for visualization taxonomy - barplot
     taxa = plugin_manager.plugins['taxa']
     barplot = taxa.actions['barplot']
@@ -286,7 +287,6 @@ def taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifa
     print(f'result_barplot: {result_barplot}')
 
     result_barplot.visualization.save(str(vsearch_artifacts / 'barplot.qzv'))
-
 
     # Save taxonomy to tsv file
     taxanomy_metadata = pd.read_csv(
@@ -299,8 +299,8 @@ def taxonomy_classification(clustered_table, clustered_sequences, vsearch_artifa
     taxonomy_table.drop('feature_id', axis=1).to_csv(
         vsearch_artifacts / 'taxonomy.tsv', index=False, sep='\t')
 
-
     return taxonomy
+
 
 def main():
     """
@@ -321,16 +321,16 @@ def main():
     working_dir = output_dir / Path('working_dir')
     working_dir.mkdir(exist_ok=True)
 
-    #preprocessing and importing data
+    # preprocessing and importing data
 
     prepared_for_qiime2_reads_dir, sample_name = prepare_data_pe(forward_raw_reads, reverse_raw_reads, working_dir)
     paired_end_sequences = load_sequences_to_qiime2(prepared_for_qiime2_reads_dir, output_dir)
     sequences = merging(paired_end_sequences, output_dir)
 
-    #dereplication
+    # dereplication
     dereplicated_table, dereplicated_sequences = dereplication(sequences, output_dir)
 
-    #OTUs (clustering)
+    # OTUs (clustering)
     clustered_table, clustered_sequences, df_seqs_freqs = otu_clustering(dereplicated_table, dereplicated_sequences, output_dir, sample_name)
 
     # taxonomy classification

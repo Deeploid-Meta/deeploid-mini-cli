@@ -40,7 +40,7 @@
 
   ```sh
   #  If you have assembly and RNA-seq reads
-   deeploid_cli -m fasta_rna -a /path/to/assembly.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
+   python3 deeploid_cli.py -t vsearch -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus_classifier.qza -o path/output
   ```
 
 - **qiime2 + deblur**
@@ -119,28 +119,26 @@
 
 -----------------------------------------------
 
-```bash
-├──envs # Зависимости окружений для SnakeMake
-│   ├── dada.yaml
-│   ├── deblur.yaml
-│   └── vsearch.yaml
-├──markdown # Хранение файлов для README.md 
-│   ├── photo.png
-│   └── lol.gif
-├──rules # Правила для SnakeMake
-│   ├── dada.smk
-│   ├── deblur.smk
-│   └── vsearch.smk
-├──scripts # Правила для SnakeMake
-│   ├── qiime_pipleline.py
-│   ├── dada_pipleline.py
-│   ├── deblur_pipleline.py
-│   └── vsearch_pipleline.py
-├──workflow # Зависимости SnakeMake ( тут его архитектура)
-│   └── snakefile
-├──databases 
+```py
+deeploid_mini_cli
+├──data # input files (fasta/fastq)
+│   ├── standart_dataset 
+│   └── input_files
+├──databases # database for pipelines
+│   ├── GG
+│   ├── vsearch
+│   ├── silva
+│   └── README.md 
+├──markdown
+├──workflow # SnakeMake workflow
+│   ├── envs
+│   ├── rules
+│   ├── scripts
+│   ├── snakefile
+│   └── README.md
+├──.gitignore 
 ├──README.md
-└──deeploid_cli.py
+└──deeploid_cli.py # main script 
 ```
 
 ### Визуализация **пути** продвинутого пользователя

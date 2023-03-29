@@ -1,5 +1,4 @@
-# Скрипты НА ТЕСТЕ
-
+# Скрипты пайплайнов
 
 ## Скрипты РАБОЧИЕ
 
@@ -18,3 +17,5 @@
 - vsearch_pipeline.py - последняя версия Юры
 
     python3 deeploid_cli.py -t vsearch -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus_classifier.qza -o path/output
+
+## Скрипты НА ТЕСТЕ

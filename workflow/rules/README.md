@@ -1,4 +1,7 @@
-# Удачно про rule all
+# rules
+
+
+## Удачно про rule all
 
 https://www.embl.org/groups/bioinformatics-rome/blog/2022/04/snakemake-profile-4-defining-resources-and-threads/
 
