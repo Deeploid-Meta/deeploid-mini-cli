@@ -1,0 +1,26 @@
+TOOL = config["tool"]
+FORWARD_READS = config["forward_reads"]
+REVERSE_READS = config["reverse_reads"]
+OUTDIR = config["outdir"]
+DATABASE = config["database"]
+THREADS = config["threads"]
+WORKING_DIR = config["working_dir"]
+TAXANOMY = config["taxonomy"]
+
+rule all:
+    input:
+        expand("{outdir}/{tool}/taxonomy.tsv", outdir=OUTDIR, tool=TOOL)
+
+rule envs:
+    params:
+        qiime2 = "../envs/qiime2.yaml",
+        deblur = "../envs/deblur.yaml",
+        dada2 = "../envs/dada2.yaml",
+        vsearch = "../envs/vsearch.yaml"
+        
+envs = rules.envs.params
+
+include: "rules/qiime2.smk"
+include: "rules/deblur.smk"
+include: "rules/dada2.smk"
+include: "rules/vsearch.smk"
