@@ -239,6 +239,3 @@ deeploid_cli is available in conda, to install and set is use following commands
 ## Лицензия
 
  [The MIT License](https://opensource.org/licenses/mit-license.php)
-
-
-
