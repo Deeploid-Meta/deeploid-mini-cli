@@ -1,0 +1,59 @@
+name: Autotest for dada pipline
+
+on: 
+  commit:
+    branches: [ develop, auto_test ]
+
+jobs:
+  download-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Download database file
+        run: |
+          git lfs pull
+      - name: Upload database as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: database
+          path: databases/silva_nr99_v138.1_train_set.fa.gz
+
+  deblur:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9]
+
+        variant: [deblur, qiime2, dada2]
+
+    needs: download-database
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Install Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download database artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: database
+          path: databases/silva_nr99_v138.1_train_set.fa.gz
+
+      - name: Run ${matrix.variant} test
+        run: |
+          python3 ${{ github.workspace }}/deeploid_cli.py -t ${{ matrix.variant }} \
+          -1 ${{ github.workspace }}/data/standart_dataset/mock_2_R1.fastq \
+          -2 ${{ github.workspace }}/data/standart_dataset/mock_2_R2.fastq \
+          -db ${{ github.workspace }}/databases/silva_nr99_v138.1_train_set.fa.gz \
+          -o ${{ github.workspace }}/output
