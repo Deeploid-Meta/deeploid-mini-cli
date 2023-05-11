@@ -1,7 +1,7 @@
 name: Autotest for dada pipline
 
 on: 
-  commit:
+  push:
     branches: [ develop, auto_test ]
 
 jobs:
