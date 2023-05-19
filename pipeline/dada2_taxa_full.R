@@ -1,10 +1,17 @@
 #!/usr/bin/env Rscript
 suppressPackageStartupMessages(library("argparse"))
 library(dada2); packageVersion("dada2")
+
+# argparse uploading only with mirror
+if (!require(argparse)) {
+  install.packages("argparse", repos = "https://mirror.truenetwork.ru/CRAN/")
+  library(argparse)
+}
+
 # create parser object
 parser <- ArgumentParser()
 
-parser$add_argument("-t", "--type", type = "character", default = "otu",
+parser$add_argument("-t", "--type", type = "character", default = "taxa",
     help = "Enter type for start: otu - create OTU, taxa - create taxonomy.")
 parser$add_argument("-p", "--path", type = "character", default = "otu",
     help = "Enter path to  reads")
@@ -29,12 +36,10 @@ fnRs <- sort(list.files(path,
                         full.names = TRUE))
 sample.names <- sapply(strsplit(basename(fnFs), "\\."), `[`, 1)
 
-filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
-filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq"))
+filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq"))
 names(filtFs) <- sample.names
 names(filtRs) <- sample.names
-
-
 
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
@@ -58,7 +63,7 @@ table(nchar(getSequences(seqtab)))
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 
 getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+track <- cbind(out, getN(dadaFs), getN(mergers), rowSums(seqtab), rowSums(seqtab.nochim))
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 
