@@ -21,3 +21,5 @@
 
 Определяем риды. Если это paired-end (forward и reverse) данные,то будут сгенерированы два файла, а именно SRR22371859_1.fastq и SRR22371859_2.fastq; Если это single-end данные,то будет только один файл SRR22371859.fastq. \
 ``./fasterq-dump --split-3 ~/deeploid/ncbi/sra/SRR22371859.sra -e 10 -o ~/deeploid/ncbi/sra/SRR22371859``
+
+blabla
