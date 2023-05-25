@@ -1,0 +1,65 @@
+name: Autotest for snakemake
+
+on:
+  push:
+    branches:
+      - 'develop'
+      - 'auto_test'
+
+jobs:
+  download-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Download database file
+        run: |
+          git lfs pull
+      - name: Upload database as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: database
+          path: /databases/silva_nr99_v138.1_train_set.fa.gz
+
+  pipelines:
+    runs-on: ubuntu-latest
+    needs: download-database
+    strategy:
+      matrix:
+        variant: [deblur, vsearch]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Run tests
+        run: |
+          python3 ${{ github.workspace }}/deeploid_cli.py -t qiime2 \
+          -1 ${{ github.workspace }}/data/standart_dataset/mock_2_R1.fastq \
+          -2 ${{ github.workspace }}/data/standart_dataset/mock_2_R2.fastq \
+          -db ${{ github.workspace }}/databases/GG/85_otus.fasta \
+          -tx ${{ github.workspace }}/databases/GG/85_otu_taxonomy.txt \
+          -o ${{ github.workspace }}/output
+
+          python3 ${{ github.workspace }}/deeploid_cli.py -t dada2 \
+          -1 ${{ github.workspace }}/data/standart_dataset/mock_2_R1.fastq \
+          -2 ${{ github.workspace }}/data/standart_dataset/mock_2_R2.fastq \
+          -db ${{ github.workspace }}/databases/silva_nr99_v138.1_train_set.fa.gz \
+          -o ${{ github.workspace }}/output
+
+          python3 ${{ github.workspace }}/deeploid_cli.py -t ${{ matrix.variant }} \
+          -1 ${{ github.workspace }}/data/standart_dataset/mock_2_R1.fastq \
+          -2 ${{ github.workspace }}/data/standart_dataset/mock_2_R2.fastq \
+          -db ${{ github.workspace }}/databases/GG/85_otus_classifier.qza \
+          -tx ${{ github.workspace }}/databases/GG/85_otu_taxonomy.txt \
+          -o ${{ github.workspace }}/output
+
