@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Download database file
@@ -21,14 +21,14 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: database
-          path: ./databases/silva_nr99_v138.1_train_set.fa.gz
+          path: /databases/silva_nr99_v138.1_train_set.fa.gz
 
   pipelines:
     runs-on: ubuntu-latest
     needs: download-database
     strategy:
       matrix:
-        variant: [deblur, qiime2]
+        variant: [deblur, vsearch]
 
     steps:
       - name: Checkout code
