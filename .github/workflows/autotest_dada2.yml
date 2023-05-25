@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'develop'
+      - 'auto_test'
 
 jobs:
   download-database:
