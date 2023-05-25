@@ -28,7 +28,6 @@ jobs:
     needs: download-database
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
         variant: [deblur, qiime2]
 
     steps:
@@ -37,10 +36,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Install Python ${{ matrix.python-version }}
+      - name: Install python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
 
       - name: Run tests
         run: |
