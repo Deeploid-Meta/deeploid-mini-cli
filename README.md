@@ -22,7 +22,6 @@
 
 <h4 align="center">
   <a href=#features> Features </a> |
-  <a href=#features> Structure </a> |
   <a href=#installation> Installation </a> |
   <a href=#quick-start> Quick Start </a> |
   <a href=#community> Community </a>
@@ -33,172 +32,69 @@
 
   Начиная процесс анализа метагеномных данных мы столкнулись с тем, что проблемы есть не только с данными, но и с инструментами. Существующие решения не только громоздкие, но и позволяют сделать ошибки неопытным пользователям. А эти ошибки приводят к неправильной интерпретации результатов, что недопустимо, когда это касается, например, здоровья человека.
 
-### Пайплайны 
-  *Наглядное сравнение:*
-
-- **deeploid_cli**
-
-  ```sh
-  #  If you have assembly and RNA-seq reads
-   python3 deeploid_cli.py -t vsearch -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus_classifier.qza -o path/output
-  ```
-
-- **qiime2 + deblur**
-
-  ```sh
-  qiime tools import \
-   --type SampleData[PairedEndSequencesWithQuality] \
-   --input-path seqs/ \
-   --output-path q2/paired-end-demux.qza \
-   --input-format CasavaOneEightSingleLanePerSampleDirFmt
-
-  qiime demux summarize \
-   --i-data q2/paired-end-demux.qza \
-   --o-visualization q2/reports/paired-end-demux_summary.qzv
-
-  qiime vsearch join-pairs \
-  --i-demultiplexed-seqs paired-end-demux.qza \
-  --o-joined-sequences demux-joined.qza \
-  --p-minmergelen 240 \
-  --p-maxmergelen 270 \
-  --p-maxdiffs 10
-
-  qiime quality-filter q-score-joined \
-  --i-demux demux-joined.qza \
-  --o-filtered-sequences demux-filtered.qza \
-  --o-filter-stats demux-filter-stats.qza
-
-  qiime deblur denoise-16S \
-  --i-demultiplexed-seqs demux-filtered.qza \
-  --p-trim-length 240 \
-  --o-representative-sequences rep-seqs.qza \
-  --o-table table.qza \
-  --p-sample-stats \
-  --p-jobs-to-start 10 \
-  --o-stats deblur-stats.qza
-  qiime deblur visualize-stats --i-deblur-stats deblur-stats.qza --o-visualization reports/deblur-stats.qzv
-  qiime feature-table summarize --i-table table.qza --o-visualization reports/table.qzv
-  qiime feature-table tabulate-seqs --i-data rep-seqs.qza --o-visualization reports/rep-seqs.qzv
-  ```
-
-Наш инструмент, лишен недостатков конкурентов и упрощает до одной строки получение нужных результатов. Но при этом, глубоко погруженные в тему, смогут добавить дополнительные аргументы и взять самое лучшее из других пайплайнов.
-
-### Данные
-
-Погрузившись в предметную область, поняли, что данные могут стать *плохими* в 4 случаях:
-
-- Плохой забор проб, их транспортировка и хранение
-- Дешевые методы секвенирования ДНК (ошибки делают)
-- Ограничения по длине на исследование 16s (потеря инфы, если не полностью читать)
-- Неправильная обработка сырых данных (тримминг, мержинг)
-
-Сейчас мы способны решить только последний пункт, но впоследствии мы хотим обучить нейронку на отслеживание остальных проблем.
-
-#### Под капотом сейчас
-
-    1. Загрузка данных  в CLI
-    2. Простейшая чистка данных с ошибками
-    3. Удаление шума за счет математики (denoising)
-    4. Кластеризация
-    5. Химеринг
-    6. Такосономия
-    7. Визуализация
-
-#### Под капотом с ML
-
-    1. Загрузка данных в CLI
-    2. Проверка качества данных и эксперимента (обученная нейронка)
-    3. Отбраковка данных/учет выявленных зависимостей
-    4. Удаление шума за счет математики (denoising)
-    5. Кластеризация
-    6. Химеринг
-    7. Такосономия
-    8. Визуализация
-
-## Структура репозитория
-
------------------------------------------------
-
-```py
-deeploid_mini_cli
-├──data # input files (fasta/fastq)
-│   ├── standart_dataset 
-│   └── input_files
-├──databases # database for pipelines
-│   ├── GG
-│   ├── vsearch
-│   ├── silva
-│   └── README.md 
-├──markdown
-├──workflow # SnakeMake workflow
-│   ├── envs
-│   ├── rules
-│   ├── scripts
-│   ├── snakefile
-│   └── README.md
-├──.gitignore 
-├──README.md
-└──deeploid_cli.py # main script 
-```
-
-### Визуализация **пути** продвинутого пользователя
-![Текст с описанием картинки](/markdown/arch_full.jpg)
-
-
-## Ну и как же проверять качество данных и полученных результатов?
-
----
-
-### Сырые данные
-
- Для проверки сырых данных есть FastQC - это простой способ проверки качества необработанных данных, поступающих из высокопроизводительных систем секвенирования.
-
-![Текст с описанием картинки](/markdown/fastQC.png)
-
-### После таксономического анализа
-
-Для анализа таксономии есть метрики филогенетического разнообразия
-
-|  Филогенетическое разнообразие  | Альфа-разнообразие | Бета-разнообразие |
-| ------------- | ------------- | ------------- |
-|![Текст с описанием картинки](/markdown/philog_tree.png)  | ![Текст с описанием картинки](/markdown/alpha_chao.png)  | ![Текст с описанием картинки](/markdown/beta_kertice.png)  |
-
+  Все фишки и преимущества нашего приложения можно посмотреть на нашем сайте [DeepLoid](http://www.deeploid.tech/)
 
 ## &#128204;Installation
 
-С использованием conda, mamba и bioconda
+### Install, set and run (Linux/MacOS)
 
-deeploid_cli is available in conda, to install and set is use following commands:
-1) Download deeploid_cli in separate conda environment: `conda create -n deeploid_cli -c conda-forge -c bioconda -c deeploid_cli`
-2) Activate the environment: `conda activate deeploid_cli`
+`Note that full installation is not possible from Windows`, because some of the dependencies are Unix (Linux/MacOS) only. `For Windows`, please use the minimal installation below.
+
+Snakemake can be installed with all goodies needed to run in any environment and for creating interactive reports via
+
+```sh
+conda install -n base -c conda-forge mamba
+conda activate base
+mamba create -c conda-forge -c bioconda -n snakemake snakemake
+```
+
+from the Bioconda channel. This will install snakemake into an isolated software environment, that has to be activated with
+
+```sh
+conda activate snakemake
+snakemake --help
+```
+
+Installing into isolated environments is best practice in order to avoid side effects with other packages.
+
+### Minimal installation (Windows)
+
+A minimal version of Snakemake which only depends on the bare necessities can be installed with
+
+```sh
+conda install -n base -c conda-forge mamba
+conda activate base
+mamba create -c bioconda -c conda-forge -n snakemake snakemake-minimal
+```
+
+In contrast to the full installation, which depends on some Unix (Linux/MacOS) only packages, this also works on Windows.
 
 ## &#128204; Quick Start
 
-deeploid_cli is available in conda, to install and set is use following commands:
+After snakemake env activate:
 
-1) To run deeploid_cli on your reads use one of the following commands:
+При запуске любого скрипта создается папка `path/output` и в ней появляются `ASV.csv, taxonomy.tsv и папка pipeline_artifacts`
 
-   ```bash
-   # If you have only assembly
-   deeploid_cli -m fasta -a /path/to/assembly.fasta -t 32 -o /path/to/outdir
+- deblur_pipeline.py
 
-   # If you have assembly and closest reference proteins
-   deeploid_cli -m fasta_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -t 32 -o /path/to/outdir
+      python3 deeploid_cli.py -t deblur -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus_classifier.qza -tx databases/GG/85_otu_taxonomy.txt -o path/output
 
-   # If you have assembly and RNA-seq reads
-   deeploid_cli -m fasta_rna -a /path/to/assembly.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
+- qiime2_pipeline.py
 
-   # If you have assembly, closest reference proteins and RNA-seq data 
-   deeploid_cli -m fasta_rna_faa -a /path/to/assembly.fasta -f /path/to/proteins.fasta -1 /path/to/forward_read_1.fastq -2 /path/to/reverse_read_2.fastq -t 32 -o /path/to/outdir
-   ```
+      python3 deeploid_cli.py -t qiime2 -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus.fasta -tx databases/GG/85_otu_taxonomy.txt -o path/output
+
+- dada2_pipeline.R
+
+      python3 deeploid_cli.py -t dada2 -1 mock_2_R1.fastq -2 mock_2_R2.fastq -db databases/silva_nr99_v138.1_train_set.fa.gz -o path/output
+
+- vsearch_pipeline.py
+
+      python3 deeploid_cli.py -t vsearch -1 data/standart_dataset/mock_2_R1.fastq -2 data/standart_dataset/mock_2_R2.fastq -db databases/GG/85_otus_classifier.qza -o path/output
 
 ## &#128204;Community
 
-### Расти вместе с AI Talent Hub!
+### Your team!
 
-На базе [AI Talent Hub](https://ai.itmo.ru/) Университет ИТМО совместно с компанией Napoleon IT запустил образовательную программу «Инженерия машинного обучения». Это не краткосрочные курсы без практического применения, а онлайн-магистратура нового формата, основанная на реальном рабочем процессе в компаниях.
-
-Мы команда Deeploid:
 * [Михаил](https://t.me/gurev)
 * [Дарья](https://t.me/voronik1801)
 * [Никита](https://t.me/space_apple)
@@ -206,14 +102,6 @@ deeploid_cli is available in conda, to install and set is use following commands
 * [Данил](https://t.me/danil_zilov)
 * [Маргарита](https://t.me/UnderPressureOf)
 * [Валентина](https://t.me/Vale_612)
-
-<details><summary> &#128516; Шутейка </summary>
-<p>
-
-![Jokes Card](https://readme-jokes.vercel.app/api)
-
-</p>
-</details>
 
 ## Цитирование
 
@@ -224,7 +112,7 @@ deeploid_cli is available in conda, to install and set is use following commands
     title={High Performance CLI},
     author={Deeploid Contributors},
     howpublished = {\url{https://github.com/Deeploid-Meta/deeploid-mini-cli}},
-    year={2022}
+    year={2023}
 }
 ```
 
