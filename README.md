@@ -85,7 +85,7 @@ After snakemake env activate:
 
 - dada2_pipeline.R
 
-      python3 deeploid_cli.py -t dada2 -1 mock_2_R1.fastq -2 mock_2_R2.fastq -db databases/silva_nr99_v138.1_train_set.fa.gz -o path/output
+      python3 deeploid_cli.py -t dada2 -1 mock_2_R1.fastq -2 mock_2_R2.fastq -db databases/dada/silva_nr99_v138.1_train_set.fa.gz -o path/output
 
 - vsearch_pipeline.py
 
