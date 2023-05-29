@@ -1,0 +1,4 @@
+outs:
+- md5: 6b41db7139834c71171f8ce5b5918fc6
+  size: 137283333
+  path: silva_nr99_v138.1_train_set.fa.gz
