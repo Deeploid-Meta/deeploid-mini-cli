@@ -8,6 +8,47 @@ from qiime2.sdk import PluginManager
 
 import qiime2
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description='deblur pipeline')
+    parser.add_argument(
+        '-1', '--forward_reads',
+        help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
+        required=True)
+    parser.add_argument(
+        '-2', '--reverse_reads',
+        help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
+        default=False)
+    parser.add_argument(
+        '-o', '--outdir', help='Output folder (default = reads folder)',
+        required=False, default=False)
+    parser.add_argument(
+        '-p', '--prefix',
+        help='Output file prefix (default = prefix of original file)',
+        required=False, default=False)
+    parser.add_argument(
+        '-db', '--database', help='Path to database (fasta/qza)',
+        required=False, default=False)
+    parser.add_argument(
+        '-t', '--threads', help='Number of threads (default = 8)',
+        required=False, default=8, type=int)
+    parser.add_argument(
+        '--trunc_len', help='dada2 denoise_single - trunc length',
+        required=False, default=150, type=int)
+    parser.add_argument(
+        '--trim_left', help='dada2 denoise_single - trim left',
+        required=False, default=30, type=int)
+    parser.add_argument(
+        '--trim_length', help='deblur denoise-16S - trim_length',
+        required=False, default=150, type=int)
+    parser.add_argument(
+        '--left_trim_len', help='deblur denoise-16S - left_trim_len',
+        required=False, default=30, type=int)
+    parser.add_argument(
+        '--sample_stats', help='If true, gather stats per sample.',
+        required=False, default=True, type=bool)
+    return parser
+
 def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
                                     reverse_raw_reads: Path,
                                     working_dir: Path) -> str:
@@ -41,23 +82,31 @@ def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
 
 
 def main():
-    print(args)
+     """
+    Pipeline for metagenomics 16s data anlysis using vsearch
+    """
+    # Create parser
+    parser = build_parser()
+    args = vars(parser.parse_args())
+    
+    # Create raw_reads
+    forward_raw_reads = Path(args['forward_reads'])
+    reverse_raw_reads = Path(args['reverse_reads'])
+    
     # Create output directory
-    output = Path(args['outdir'] + '/deblur')
-    output.mkdir(exist_ok=True)
+    output_dir = Path(args['outdir'] + '/deblur')
+    output_dir.mkdir(exist_ok=True)
 
     # Create qiime2 artifacts directory
-    qiime2_artifacts = output / 'qiime2_artifacts'
+    qiime2_artifacts = output_dir / 'qiime2_artifacts'
     qiime2_artifacts.mkdir(exist_ok=True)
 
     # Create temporary directory
-    tmp_output = output / Path('tmp')
+    tmp_output = output_dir / Path('tmp')
 
     # Create working directory
-    working_dir = output / Path('working_dir')
+    working_dir = output_dir / Path('working_dir')
     working_dir.mkdir(exist_ok=True)
-    forward_raw_reads = Path(args['forward_reads'])
-    reverse_raw_reads = Path(args['reverse_reads'])
 
     sample_name = prepare_data_for_qiime_pipeline(
         forward_raw_reads, reverse_raw_reads, working_dir)
@@ -166,7 +215,7 @@ def main():
     # Save OTU table
     df_seqs_freqs['frequency'] = df_seqs_freqs['frequency'].astype(int)
     df_seqs_freqs.rename(columns={'frequency': sample_name}, inplace=True)
-    df_seqs_freqs.drop('feature_id', axis=1).to_csv(output / 'ASV.csv',
+    df_seqs_freqs.drop('feature_id', axis=1).to_csv(output_dir / 'ASV.csv',
                                                     index=False)
 
     # Use feature-classifier plugin for taxonomy assignment
@@ -194,7 +243,7 @@ def main():
     taxonomy = df_seqs_freqs.merge(
         taxanomy_metadata, on='feature_id', how='left')
     taxonomy.drop('feature_id', axis=1).to_csv(
-        output / 'taxonomy.tsv', index=False, sep='\t')
+        output_dir / 'taxonomy.tsv', index=False, sep='\t')
 
     # Use taxa plugin for visualization taxonomy - barplot
     taxa = plugin_manager.plugins['taxa']
@@ -209,47 +258,4 @@ def main():
 
 
 if __name__ == "__main__":
-    
-    parser = argparse.ArgumentParser(
-        description='deblur pipeline')
-    
-    parser.add_argument(
-        '-1', '--forward_reads',
-        help='Forward reads file (or single-end) in fastq|fq|gz|tar.gz format',
-        required=True)
-    parser.add_argument(
-        '-2', '--reverse_reads',
-        help='Reverse reads file in fastq|fq|gz|tar.gz format', required=False,
-        default=False)
-    parser.add_argument(
-        '-o', '--outdir', help='Output folder (default = reads folder)',
-        required=False, default=False)
-    parser.add_argument(
-        '-p', '--prefix',
-        help='Output file prefix (default = prefix of original file)',
-        required=False, default=False)
-    parser.add_argument(
-        '-db', '--database', help='Path to database (fasta/qza)',
-        required=False, default=False)
-    parser.add_argument(
-        '-t', '--threads', help='Number of threads (default = 8)',
-        required=False, default=8, type=int)
-    parser.add_argument(
-        '--trunc_len', help='dada2 denoise_single - trunc length',
-        required=False, default=150, type=int)
-    parser.add_argument(
-        '--trim_left', help='dada2 denoise_single - trim left',
-        required=False, default=30, type=int)
-    parser.add_argument(
-        '--trim_length', help='deblur denoise-16S - trim_length',
-        required=False, default=150, type=int)
-    parser.add_argument(
-        '--left_trim_len', help='deblur denoise-16S - left_trim_len',
-        required=False, default=30, type=int)
-    parser.add_argument(
-        '--sample_stats', help='If true, gather stats per sample.',
-        required=False, default=True, type=bool)
-    
-    args = vars(parser.parse_args())
-    
     main()
