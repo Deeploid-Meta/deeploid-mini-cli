@@ -71,6 +71,12 @@ In contrast to the full installation, which depends on some Unix (Linux/MacOS) o
 
 ## &#128204; Quick Start
 
+тут пока храняться данные для тестовых прогонов:      
+      
+      pip install poetry
+      poetry install
+      dvc pull 
+
 After snakemake env activate:
 
 При запуске любого скрипта создается папка `path/output` и в ней появляются `ASV.csv, taxonomy.tsv и папка pipeline_artifacts`
