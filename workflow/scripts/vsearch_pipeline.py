@@ -13,11 +13,15 @@ import qiime2.plugins.feature_classifier.actions as feature_classifier_actions
 import os
 import argparse
 
+# Load plugins for qiime
 plugin_manager = PluginManager(True)
 vsearch = plugin_manager.plugins["vsearch"]
 
 
 def build_parser() -> argparse.ArgumentParser:
+    '''
+    parser to make congif file
+    '''
     parser = argparse.ArgumentParser(description='vsearch pipeline for 16s rrna data analysis')
     parser.add_argument(
         '-1', '--forward_reads',
@@ -50,6 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
         '--trim_left', help='dada2 denoise_single - trim left',
         required=False, default=30, type=int)
     return parser
+
 
 def prepare_data_pe(forward_raw_reads: Path,
                     reverse_raw_reads: Path,
@@ -86,7 +91,6 @@ def prepare_data_pe(forward_raw_reads: Path,
         f.write('phred-offset: 33')
 
     return prepared_for_qiime2_reads_dir, sample_name
-
 
 
 def prepare_data_se(forward_raw_reads,
