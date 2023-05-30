@@ -82,7 +82,7 @@ def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
 
 
 def main():
-     """
+    """
     Pipeline for metagenomics 16s data anlysis using vsearch
     """
     # Create parser
@@ -96,6 +96,13 @@ def main():
     # Create output directory
     output_dir = Path(args['outdir'] + '/deblur')
     output_dir.mkdir(exist_ok=True)
+
+    # Create working directory
+    working_dir = output_dir / Path('working_dir')
+    working_dir.mkdir(exist_ok=True)
+
+    sample_name = prepare_data_for_qiime_pipeline(
+        forward_raw_reads, reverse_raw_reads, working_dir)
 
     # Create qiime2 artifacts directory
     qiime2_artifacts = output_dir / 'qiime2_artifacts'

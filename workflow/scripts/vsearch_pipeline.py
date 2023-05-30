@@ -306,7 +306,6 @@ def main():
     """
     Pipeline for metagenomics 16s data anlysis using vsearch
     """
-
     # Create raw_reads
     parser = build_parser()
     args = vars(parser.parse_args())
