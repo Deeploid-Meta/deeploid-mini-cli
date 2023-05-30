@@ -328,7 +328,8 @@ def main():
 
     # preprocessing and importing data
 
-    prepared_for_qiime2_reads_dir, sample_name = prepare_data_pe(forward_raw_reads, reverse_raw_reads, working_dir)
+    prepared_for_qiime2_reads_dir,sample_name = prepare_data_pe(forward_raw_reads,
+                                                                reverse_raw_reads, working_dir)
     paired_end_sequences = load_sequences_to_qiime2(prepared_for_qiime2_reads_dir, output_dir)
     sequences = merging(paired_end_sequences, output_dir)
 

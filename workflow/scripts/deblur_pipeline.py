@@ -96,105 +96,22 @@ def prepare_data_for_qiime_pipeline(forward_raw_reads: Path,
     return sample_name
 
 
-def denoising_deblur(paired_end_sequences, qiime2_artifacts, args):
-    '''
-    deblur denoise
-    '''
-    denoise_deblur = deblur.actions['denoise_16S']
-    denoised__sequences = denoise_deblur(
-        demultiplexed_seqs=paired_end_sequences,
-        trim_length=args['trim_length'],
-        jobs_to_start=args['threads'],
-        left_trim_len=args['left_trim_len'],
-        sample_stats=args['sample_stats']
-        )
-    denoised__sequences.table.save(str(qiime2_artifacts / 'deblur-stats.qza'))
-    denoised__sequences.stats.save(str(qiime2_artifacts / 'table-deblur.qza'))
-    denoised__sequences.representative_sequences.save(
-        str(qiime2_artifacts / 'rep-seqs-deblur.qza'))
-    return denoised__sequences
-
-
-def feature_classifier(denoised_sequences, qiime2_artifacts,
-                       args, tmp_output):
-    '''
-    Use feature-classifier plugin for taxonomy assignment
-    '''
-    classifier_path = Path(args['database'])
-    feature_classifier_sl = plugin_manager.plugins['feature-classifier']
-    classify_sklearn = feature_classifier_sl.actions['classify_sklearn']
-    classifier = qiime2.Artifact.load(classifier_path)
-
-    result_taxonomy = classify_sklearn(reads=denoised_sequences.representative_sequences,
-                                       classifier=classifier,
-                                       n_jobs=args['threads'])
-    result_taxonomy.classification.save(str(qiime2_artifacts / 'taxonomy.qza'))
-    metadata = plugin_manager.plugins['metadata']
-    tabulate = metadata.actions['tabulate']
-    tab_taxonomy = tabulate(
-        result_taxonomy.classification.view(qiime2.Metadata))
-    tab_taxonomy.visualization.save(str(qiime2_artifacts / 'taxonomy.qzv'))
-    tab_taxonomy.visualization.export_data(tmp_output / 'taxonomy')
-    return result_taxonomy
-
-
-def main():
-    """
-    Pipeline for metagenomics 16s data anlysis using vsearch
-    """
-    # Create parser
-    parser = build_parser()
-    args = vars(parser.parse_args())
-
-    # Create raw_reads
-    forward_raw_reads = Path(args['forward_reads'])
-    reverse_raw_reads = Path(args['reverse_reads'])
-
-    # Create output directory
-    output_dir = Path(args['outdir'] + '/deblur')
-    output_dir.mkdir(exist_ok=True)
-
-    # Create working directory
-    working_dir = output_dir / Path('working_dir')
-    working_dir.mkdir(exist_ok=True)
-
-    # preprocessing and importing data
-    sample_name = prepare_data_for_qiime_pipeline(
-        forward_raw_reads, reverse_raw_reads, working_dir)
-
-    # Create qiime2 artifacts directory
-    qiime2_artifacts = output_dir / 'qiime2_artifacts'
-    qiime2_artifacts.mkdir(exist_ok=True)
-
-    # Create temporary directory
-    tmp_output = output_dir / Path('tmp')
-
-    # Create working directory
-    working_dir = output_dir / Path('working_dir')
-    working_dir.mkdir(exist_ok=True)
-
-    sample_name = prepare_data_for_qiime_pipeline(
-        forward_raw_reads, reverse_raw_reads, working_dir)
-
-    # Import data
+def load_sequences_to_qiime2(qiime2_artifacts, working_dir):
     paired_end_sequences = qiime2.Artifact.import_data(
         'SampleData[PairedEndSequencesWithQuality]', str(working_dir))
     paired_end_sequences.save(
         str(qiime2_artifacts / 'paired-end-sequences.qza'))
     # paired_end_sequences.export_data(tmp_output)
-
-    # Use demux for visualization
     demux = plugin_manager.plugins['demux']
     summarize = demux.actions['summarize']
     summary = summarize(data=paired_end_sequences)
     summary.visualization.save(str(qiime2_artifacts / 'demux.qzv'))
+    return paired_end_sequences
 
-#     Perform sequence quality control for Illumina data using the Deblur
-# workflow with a 16S reference as a positive filter. Only forward reads are
-# supported at this time.
-# https://docs.qiime2.org/2022.8/plugins/available/deblur/denoise-16S/?highlight=deblur
-    
-    denoised_sequences = denoising_deblur(paired_end_sequences, qiime2_artifacts, args)
+
+def denoising_deblur(paired_end_sequences, qiime2_artifacts, args):
+    '''
+    deblur denoise
 
     # Use dada2 for denoising
     # dada2 = plugin_manager.plugins['dada2']
@@ -216,7 +133,40 @@ def main():
     #     trim_left_f=10,
     #     trim_left_r=10,
     #     )
+#     Perform sequence quality control for Illumina data using the Deblur
+# workflow with a 16S reference as a positive filter. Only forward reads are
+# supported at this time.
+# https://docs.qiime2.org/2022.8/plugins/available/deblur/denoise-16S/?highlight=deblur
 
+    '''
+    denoise_deblur = deblur.actions['denoise_16S']
+    denoised__sequences = denoise_deblur(
+        demultiplexed_seqs=paired_end_sequences,
+        trim_length=args['trim_length'],
+        jobs_to_start=args['threads'],
+        left_trim_len=args['left_trim_len'],
+        sample_stats=args['sample_stats']
+        )
+    denoised__sequences.table.save(str(qiime2_artifacts / 'deblur-stats.qza'))
+    denoised__sequences.stats.save(str(qiime2_artifacts / 'table-deblur.qza'))
+    denoised__sequences.representative_sequences.save(
+        str(qiime2_artifacts / 'rep-seqs-deblur.qza'))
+    return denoised__sequences
+
+
+def vizualizations_feature(qiime2_artifacts,
+                           denoised_sequences,
+                           tmp_output, sample_name,
+                           output_dir):
+    '''
+    # Use demux for visualization
+    # Use metadata plugin for visualization stats - tabulate
+    # Use metadata plugin for visualization stats qiime deblur visualize-stats 
+    # Use feature-table plugin for visualization table - summarize
+    # Use feature-table plugin for visualization table - tabulate-seqs
+    # read fasta file and join it with feature_freqs
+    # Save OTU table
+    '''
     
     # Use metadata plugin for visualization stats - tabulate
     metadata = plugin_manager.plugins['metadata']
@@ -266,11 +216,39 @@ def main():
     df_seqs_freqs.rename(columns={'frequency': sample_name}, inplace=True)
     df_seqs_freqs.drop('feature_id', axis=1).to_csv(output_dir / 'ASV.csv',
                                                     index=False)
+    return df_seqs_freqs
 
-    # Use feature-classifier plugin for taxonomy assignment
 
-    result_taxonomy = feature_classifier(denoised_sequences, qiime2_artifacts,
-                                         args, tmp_output)
+def feature_classifier(denoised_sequences, qiime2_artifacts,
+                       args, tmp_output):
+    '''
+    Use feature-classifier plugin for taxonomy assignment
+    '''
+    classifier_path = Path(args['database'])
+    feature_classifier_sl = plugin_manager.plugins['feature-classifier']
+    classify_sklearn = feature_classifier_sl.actions['classify_sklearn']
+    classifier = qiime2.Artifact.load(classifier_path)
+
+    result_taxonomy = classify_sklearn(reads=denoised_sequences.representative_sequences,
+                                       classifier=classifier,
+                                       n_jobs=args['threads'])
+    result_taxonomy.classification.save(str(qiime2_artifacts / 'taxonomy.qza'))
+    metadata = plugin_manager.plugins['metadata']
+    tabulate = metadata.actions['tabulate']
+    tab_taxonomy = tabulate(
+        result_taxonomy.classification.view(qiime2.Metadata))
+    tab_taxonomy.visualization.save(str(qiime2_artifacts / 'taxonomy.qzv'))
+    tab_taxonomy.visualization.export_data(tmp_output / 'taxonomy')
+    return result_taxonomy
+
+
+def save_taxonomy(tmp_output, df_seqs_freqs, output_dir,
+                  denoised_sequences, result_taxonomy,
+                  qiime2_artifacts):
+    '''
+    # Save taxonomy to tsv file
+    # Use taxa plugin for visualization taxonomy - barplot
+    '''
     # Save taxonomy to tsv file
     taxanomy_metadata = pd.read_csv(
         tmp_output / 'taxonomy' / 'metadata.tsv',
@@ -288,6 +266,69 @@ def main():
     result_barplot = barplot(table=denoised_sequences.table,
                              taxonomy=result_taxonomy.classification)
     result_barplot.visualization.save(str(qiime2_artifacts / 'barplot.qzv'))
+    return taxonomy
+
+
+def main():
+    """
+    Pipeline for metagenomics 16s data anlysis using vsearch
+    """
+    # Create parser
+    parser = build_parser()
+    args = vars(parser.parse_args())
+
+    # Create raw_reads
+    forward_raw_reads = Path(args['forward_reads'])
+    reverse_raw_reads = Path(args['reverse_reads'])
+
+    # Create output directory
+    output_dir = Path(args['outdir'] + '/deblur')
+    output_dir.mkdir(exist_ok=True)
+
+    # Create working directory
+    working_dir = output_dir / Path('working_dir')
+    working_dir.mkdir(exist_ok=True)
+
+    # preprocessing and importing data
+    sample_name = prepare_data_for_qiime_pipeline(
+        forward_raw_reads, reverse_raw_reads, working_dir)
+
+    # Create qiime2 artifacts directory
+    qiime2_artifacts = output_dir / 'qiime2_artifacts'
+    qiime2_artifacts.mkdir(exist_ok=True)
+
+    # Create temporary directory
+    tmp_output = output_dir / Path('tmp')
+
+    # Create working directory
+    working_dir = output_dir / Path('working_dir')
+    working_dir.mkdir(exist_ok=True)
+
+    sample_name = prepare_data_for_qiime_pipeline(forward_raw_reads,
+                                                  reverse_raw_reads,
+                                                  working_dir)
+
+    # Import data
+    paired_end_sequences = load_sequences_to_qiime2(qiime2_artifacts,
+                                                    output_dir)
+
+    denoised_sequences = denoising_deblur(paired_end_sequences,
+                                          qiime2_artifacts, args)
+    
+    # Use demux for visualization
+
+    df_seqs_freqs = vizualizations_feature(qiime2_artifacts,
+                                           denoised_sequences,
+                                           tmp_output, sample_name,
+                                           output_dir)
+    
+    # Use feature-classifier plugin for taxonomy assignment
+    result_taxonomy = feature_classifier(denoised_sequences, qiime2_artifacts,
+                                         args, tmp_output)
+    
+    taxonomy = save_taxonomy(tmp_output, df_seqs_freqs, output_dir,
+                        denoised_sequences, result_taxonomy,
+                        qiime2_artifacts)
 
     # Remove temporary files
     shutil.rmtree(working_dir)
