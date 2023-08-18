@@ -38,6 +38,12 @@
 
 ### Install, set and run (Linux/MacOS)
 
+
+```
+ docker build --no-cache -t deeploid_slim  .
+ docker run -it deeploid_slim
+```
+
 `Note that full installation is not possible from Windows`, because some of the dependencies are Unix (Linux/MacOS) only. `For Windows`, please use the minimal installation below.
 
 Snakemake can be installed with all goodies needed to run in any environment and for creating interactive reports via
