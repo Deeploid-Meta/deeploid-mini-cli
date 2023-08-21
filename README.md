@@ -83,6 +83,9 @@ In contrast to the full installation, which depends on some Unix (Linux/MacOS) o
       poetry install
       dvc pull 
 
+
+      docker run -it  -v $(pwd):/usr/src/app/path deeploid_slim
+      
 After snakemake env activate:
 
 При запуске любого скрипта создается папка `path/output` и в ней появляются `ASV.csv, taxonomy.tsv и папка pipeline_artifacts`
