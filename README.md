@@ -84,7 +84,7 @@ In contrast to the full installation, which depends on some Unix (Linux/MacOS) o
       dvc pull 
 
 
-      docker run -it  -v $(pwd):/usr/src/app/path deeploid_slim
+      docker run -it  -v $(pwd)/path:/usr/src/app/path deeploid_slim
       
 After snakemake env activate:
 
